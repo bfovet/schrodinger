@@ -1,5 +1,5 @@
-# Created by https://www.toptal.com/developers/gitignore/api/linux,pycharm+all,visualstudiocode,python
-# Edit at https://www.toptal.com/developers/gitignore?templates=linux,pycharm+all,visualstudiocode,python
+# Created by https://www.toptal.com/developers/gitignore/api/linux,pycharm+all,visualstudiocode,python,venv,dotenv
+# Edit at https://www.toptal.com/developers/gitignore?templates=linux,pycharm+all,visualstudiocode,python,venv,dotenv
 
 ### Linux ###
 *~
@@ -295,4 +295,21 @@ pyrightconfig.json
 .history
 .ionide
 
-# End of https://www.toptal.com/developers/gitignore/api/linux,pycharm+all,visualstudiocode,python
+### dotenv ###
+.env
+
+### venv ###
+# Virtualenv
+# http://iamzed.com/2009/05/07/a-primer-on-virtualenv/
+.Python
+[Bb]in
+[Ii]nclude
+[Ll]ib
+[Ll]ib64
+[Ll]ocal
+[Ss]cripts
+pyvenv.cfg
+.venv
+pip-selfcheck.json
+
+# End of https://www.toptal.com/developers/gitignore/api/linux,pycharm+all,visualstudiocode,python,venv,dotenv
