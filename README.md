@@ -1,4 +1,5 @@
 # Schrodinger
 
-A little experiment with my camera and my cat.
+![schrody](share/schrody.png)
 
+A little experiment with my camera and my cat.
