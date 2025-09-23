@@ -1,6 +1,9 @@
-# Schrodinger
+# Schrodinger: real-time cat detection
 
 <img src="share/schrody.png" width="512">
+
+Schrodinger captures a Real-Time Streaming Protocol (RTSP) stream from a
+home camera to detect my cat and save frames of interest.
 
 ## Contributions
 
