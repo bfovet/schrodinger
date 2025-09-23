@@ -1,4 +1,4 @@
-# Schrodinger: real-time cat detection
+## Schrodinger: real-time cat detection
 
 <img src="share/schrody.png" width="512">
 
