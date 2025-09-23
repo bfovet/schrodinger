@@ -2,4 +2,6 @@
 
 <img src="share/schrody.png" width="512">
 
-A little experiment with my camera and my cat.
+## Contributions
+
+Our [`DEVELOPMENT.md`](./DEVELOPMENT.md) file contains everything you need to know to configure your development environment.
