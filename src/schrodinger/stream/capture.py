@@ -4,7 +4,7 @@ import cv2
 
 from schrodinger.config import settings
 
-RTSP_URL = f"rtsp://{settings.SCHRODINGER_RTSP_USERNAME}:{settings.SCHRODINGER_RTSP_PASSWORD}@{settings.SCHRODINGER_RTSP_HOST_IP_ADDRESS}:554/{settings.SCHRODINGER_RTSP_STREAM_NAME}"
+RTSP_URL = f"rtsp://{settings.RTSP_USERNAME}:{settings.RTSP_PASSWORD}@{settings.RTSP_HOST_IP_ADDRESS}:554/{settings.RTSP_STREAM_NAME}"
 
 
 class FrameCapture:

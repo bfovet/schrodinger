@@ -1,10 +1,10 @@
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any, cast
-
 from aiohttp import ClientError
-from schrodinger_detector.integrations.aws.s3.client import client
-from schrodinger_detector.integrations.aws.s3.exceptions import S3FileError
-from schrodinger_detector.integrations.aws.s3.schemas import (
+
+from schrodinger.integrations.aws.s3.client import client
+from schrodinger.integrations.aws.s3.exceptions import S3FileError
+from schrodinger.integrations.aws.s3.schemas import (
     get_downloadable_content_disposition,
 )
 

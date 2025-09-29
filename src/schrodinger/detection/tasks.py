@@ -1,11 +1,14 @@
 import time
 from datetime import datetime
+import uuid
 
 import cv2
 from celery.utils.log import get_task_logger
 
+from schrodinger.config import settings
 from schrodinger.celery import celery
 from schrodinger.detection.detection import CocoClassId, EntityDetector
+from schrodinger.integrations.aws.s3.service import S3Service
 from schrodinger.stream.capture import FrameCapture, FreshestFrame
 
 # SCHRODINGER_RTSP_USERNAME = os.environ.get("USERNAME")
@@ -25,6 +28,8 @@ def detect(entity_to_detect: str) -> None:
 
     entity_found_before = False
     entity_found = False
+
+    s3 = S3Service(settings.S3_FILES_BUCKET_NAME)
 
     entity_detector = EntityDetector()
 
@@ -52,7 +57,8 @@ def detect(entity_to_detect: str) -> None:
             annotated_frame = capture.annotate_frame(
                 frame, entity.box, entity.name, entity.confidence
             )
-            latest_frame_with_entity_found = annotated_frame
+            latest_frame_with_entity_found = frame
+            latest_annotated_frame_with_entity_found = annotated_frame
         else:
             entity_found = False
 
@@ -60,24 +66,38 @@ def detect(entity_to_detect: str) -> None:
             now = datetime.now()
             timestamp = now.strftime("%Y%m%d_%H%M%S")
             logger.debug(f"Entity entered frame at {now}")
-            cv2.imwrite(f"images/{entity_to_detect}_entered_{timestamp}.png", frame)
-            cv2.imwrite(
-                f"images/annotated_{entity_to_detect}_entered_{timestamp}.png",
-                annotated_frame,
-            )
+
+            frame_bytes = cv2.imencode(".png", frame)[1].tobytes()
+            s3.upload(frame_bytes, f"{uuid.uuid4()}/{entity_to_detect}_entered_{timestamp}.png", mime_type="image/png")
+
+            annotated_frame_bytes = cv2.imencode(".png", annotated_frame)[1].tobytes()
+            s3.upload(annotated_frame_bytes, f"{uuid.uuid4()}/annotated_{entity_to_detect}_entered_{timestamp}.png", mime_type="image/png")
+
+            # cv2.imwrite(f"images/{entity_to_detect}_entered_{timestamp}.png", frame)
+            # cv2.imwrite(
+            #     f"images/annotated_{entity_to_detect}_entered_{timestamp}.png",
+            #     annotated_frame,
+            # )
             entity_found_before = True
         if entity_found_before and not entity_found:
             now = datetime.now()
             timestamp = now.strftime("%Y%m%d_%H%M%S")
             logger.debug(f"Entity left frame at {now}")
-            cv2.imwrite(
-                f"images/{entity_to_detect}_left_{timestamp}.png",
-                latest_frame_with_entity_found,
-            )
-            cv2.imwrite(
-                f"images/annotated_{entity_to_detect}_left_{timestamp}.png",
-                latest_frame_with_entity_found,
-            )
+
+            frame_bytes = cv2.imencode(".png", latest_frame_with_entity_found)[1].tobytes()
+            s3.upload(frame_bytes, f"{uuid.uuid4()}/{entity_to_detect}_left_{timestamp}.png", mime_type="image/png")
+
+            annotated_frame_bytes = cv2.imencode(".png", latest_annotated_frame_with_entity_found)[1].tobytes()
+            s3.upload(annotated_frame_bytes, f"{uuid.uuid4()}/annotated_{entity_to_detect}_left_{timestamp}.png", mime_type="image/png")
+
+            # cv2.imwrite(
+            #     f"images/{entity_to_detect}_left_{timestamp}.png",
+            #     latest_frame_with_entity_found,
+            # )
+            # cv2.imwrite(
+            #     f"images/annotated_{entity_to_detect}_left_{timestamp}.png",
+            #     latest_frame_with_entity_found,
+            # )
             entity_found_before = False
 
     fresh.release()

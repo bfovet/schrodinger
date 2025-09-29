@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from schrodinger_detector.kit.schemas import IDSchema, Schema
+from schrodinger.kit.schemas import IDSchema, Schema
 
 
 def get_downloadable_content_disposition(filename: str) -> str:
