@@ -40,12 +40,12 @@ def detect(entity_to_detect: str) -> None:
         if dt > 0.010:  # 10 milliseconds
             logger.info(f"NOTICE: read() took {dt:.3f} secs")
 
-        logger.info(f"processing {count}...")
+        # logger.info(f"processing {count}...")
 
         results = entity_detector.run_inference(frame)
         if (
             entity := entity_detector.process_inference_results(
-                results, CocoClassId.bottle
+                results, CocoClassId.cup
             )
         ) is not None:
             entity_found = True

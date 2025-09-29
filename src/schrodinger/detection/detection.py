@@ -10,6 +10,7 @@ class CocoClassId(IntEnum):
     person = 0
     cat = 15
     bottle = 39
+    cup = 41
     couch = 57
     dining_table = 60
     laptop = 63
@@ -22,6 +23,7 @@ class CocoClassName(StrEnum):
     person = "person"
     cat = "cat"
     bottle = "bottle"
+    cup = "cup"
     couch = "couch"
     dining_table = "dining_table"
     laptop = "laptop"
