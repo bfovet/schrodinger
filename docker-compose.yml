@@ -39,8 +39,40 @@ services:
         "bash", "-c", "chmod +x /tmp/config/configure.sh && /tmp/config/configure.sh"
       ]
 
+  db:
+    image: postgres:18.0-alpine
+    container_name: postgres
+    environment:
+      - POSTGRES_USER=${SCHRODINGER_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${SCHRODINGER_POSTGRES_PWD}
+      - POSTGRES_DB=${SCHRODINGER_POSTGRES_DATABASE}
+      - POSTGRES_PORT=${SCHRODINGER_POSTGRES_PORT}
+      - SCHRODINGER_READ_USER=${SCHRODINGER_POSTGRES_READ_USER:-schrodinger_read}
+      - SCHRODINGER_READ_PASSWORD=${SCHRODINGER_POSTGRES_READ_PWD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+      - ./init-readonly-user.sql:/docker-entrypoint-initdb.d/init-readonly-user.sql
+    ports:
+      - "${SCHRODINGER_POSTGRES_PORT}:${SCHRODINGER_POSTGRES_PORT}"
+    expose:
+      - ${SCHRODINGER_POSTGRES_PORT}
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "pg_isready",
+          "-q",
+          "-d",
+          "${SCHRODINGER_POSTGRES_DATABASE}",
+          "-U",
+          "${SCHRODINGER_POSTGRES_USER}",
+        ]
+      timeout: 40s
+      interval: 2s
+      retries: 20
+
   redis:
-    image: redis:7.4.1-alpine
+    image: redis:8.2.1-alpine
     container_name: redis
     ports:
       - "6379:6379"

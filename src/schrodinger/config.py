@@ -7,10 +7,29 @@ class Settings(BaseSettings):
     CELERY_BROKER_URL: str = "redis://localhost:6379/0"
     CELERY_BACKEND_URL: str = "redis://localhost:6379/0"
 
+    # Stream
     RTSP_USERNAME: str = ""
     RTSP_PASSWORD: str = ""
     RTSP_HOST_IP_ADDRESS: str = ""
     RTSP_STREAM_NAME: str = ""
+
+    # Database
+    POSTGRES_USER: str = "schrodinger"
+    POSTGRES_PWD: str = "schrodinger"
+    POSTGRES_HOST: str = "127.0.0.1"
+    POSTGRES_PORT: int = 5432
+    POSTGRES_DATABASE: str = "schrodinger_development"
+    DATABASE_POOL_SIZE: int = 5
+    DATABASE_SYNC_POOL_SIZE: int = 1  # Specific pool size for sync connection: since we only use it in OAuth2 router, don't waste resources.
+    DATABASE_POOL_RECYCLE_SECONDS: int = 600  # 10 minutes
+    DATABASE_COMMAND_TIMEOUT_SECONDS: float = 30.0
+    DATABASE_STREAM_YIELD_PER: int = 100
+
+    POSTGRES_READ_USER: str | None = None
+    POSTGRES_READ_PWD: str | None = None
+    POSTGRES_READ_HOST: str | None = None
+    POSTGRES_READ_PORT: int | None = None
+    POSTGRES_READ_DATABASE: str | None = None
 
     # Downloadable files
     S3_FILES_BUCKET_NAME: str = "schrodinger-s3"
