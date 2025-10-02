@@ -6,5 +6,5 @@ celery = Celery(
     "celery",
     broker=settings.CELERY_BROKER_URL,
     backend=settings.CELERY_BACKEND_URL,
-    include=["schrodinger.detection.tasks"],
+    include=["schrodinger.detection.tasks", "schrodinger.experimental.tasks"],
 )
