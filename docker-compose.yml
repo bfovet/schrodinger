@@ -86,64 +86,61 @@ services:
       timeout: 10s
       retries: 3
 
-  # schrodinger:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile
-  #   develop:
-  #     # Create a `watch` configuration to update the app
-  #     watch:
-  #       # Sync the working directory with the `/app` directory in the container
-  #       - action: sync
-  #         path: .
-  #         target: /app
-  #         # Exclude the project virtual environment
-  #         # ignore:
-  #         #   - .venv/
+  schrodinger:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    develop:
+      watch:
+        - action: sync
+          path: .
+          target: /app
+          # Exclude the project virtual environment
+          # ignore:
+          #   - .venv/
 
-  #       # Rebuild the image on changes to the `pyproject.toml`
-  #       - action: rebuild
-  #         path: ./pyproject.toml
-  #   container_name: schrodinger
-  #   ports:
-  #     - "8000:8000"
-  #   depends_on:
-  #     - redis
-  #     - minio
-  #   environment:
-  #     - CELERY_BROKER_URL=redis://redis:6379/0
-  #     - CELERY_RESULT_BACKEND=redis://redis:6379/0
-  #     - MINIO_ENDPOINT=minio:9000
-  #     - MINIO_ACCESS_KEY=minio
-  #     - MINIO_SECRET_KEY=minioadmin123
-  #   restart: unless-stopped
-  #   healthcheck:
-  #     test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-  #     interval: 30s
-  #     timeout: 10s
-  #     retries: 3
+        - action: rebuild
+          path: ./pyproject.toml
+    container_name: schrodinger
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+      - minio
+    environment:
+      - CELERY_BROKER_URL=redis://${SCHRODINGER_REDIS_HOST}:${SCHRODINGER_REDIS_PORT}/${SCHRODINGER_REDIS_DB}
+      - CELERY_RESULT_BACKEND=redis://${SCHRODINGER_REDIS_HOST}:${SCHRODINGER_REDIS_PORT}/${SCHRODINGER_REDIS_DB}
+      # - MINIO_ENDPOINT=${SCHRODINGER_S3_ENDPOINT_URL}
+      # - MINIO_ACCESS_KEY=${SCHRODINGER_MINIO_USER}
+      # - MINIO_SECRET_KEY=${SCHRODINGER_MINIO_PWD}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
-  # celery-worker:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile
-  #   container_name: celery-worker
-  #   depends_on:
-  #     - redis
-  #     - minio
-  #   environment:
-  #     - CELERY_BROKER_URL=redis://redis:6379/0
-  #     - CELERY_RESULT_BACKEND=redis://redis:6379/0
-  #     - MINIO_ENDPOINT=minio:9000
-  #     - MINIO_ACCESS_KEY=minio
-  #     - MINIO_SECRET_KEY=minioadmin123
-  #   command: celery -A schrodinger.celery.celery worker --loglevel=info
-  #   restart: unless-stopped
-  #   healthcheck:
-  #     test: ["CMD", "celery", "-A", "schrodinger.celery.celery", "inspect", "ping"]
-  #     interval: 30s
-  #     timeout: 10s
-  #     retries: 3
+  celery-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: celery-worker
+    depends_on:
+      - redis
+      # - minio
+    environment:
+      - CELERY_BROKER_URL=redis://${SCHRODINGER_REDIS_HOST}:${SCHRODINGER_REDIS_PORT}/${SCHRODINGER_REDIS_DB}
+      - CELERY_RESULT_BACKEND=redis://${SCHRODINGER_REDIS_HOST}:${SCHRODINGER_REDIS_PORT}/${SCHRODINGER_REDIS_DB}
+      # - MINIO_ENDPOINT=${SCHRODINGER_S3_ENDPOINT_URL}
+      # - MINIO_ACCESS_KEY=${SCHRODINGER_MINIO_USER}
+      # - MINIO_SECRET_KEY=${SCHRODINGER_MINIO_PWD}
+    command: uv run celery -A schrodinger.celery.celery worker --loglevel=info
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "uv", "run", "celery", "-A", "schrodinger.celery.celery", "inspect", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   # celery-beat:
   #   build:
@@ -162,18 +159,18 @@ services:
   #   command: celery -A schrodinger.celery.celery beat --loglevel=info
   #   restart: unless-stopped
 
-  flower:
-    image: mher/flower:2.0.1
-    container_name: flower
-    ports:
-      - "5555:5555"
-    depends_on:
-      - redis
-    environment:
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - FLOWER_PORT=5555
-    command: celery --broker=redis://redis:6379/0 flower
-    restart: unless-stopped
+  # flower:
+  #   image: mher/flower:2.0.1
+  #   container_name: flower
+  #   ports:
+  #     - "5555:5555"
+  #   depends_on:
+  #     - redis
+  #   environment:
+  #     - CELERY_BROKER_URL=redis://${SCHRODINGER_REDIS_HOST}:${SCHRODINGER_REDIS_HOST}/${SCHRODINGER_REDIS_DB}
+  #     - FLOWER_PORT=5555
+  #   command: celery --broker=redis://${SCHRODINGER_REDIS_HOST}:${SCHRODINGER_REDIS_HOST}/${SCHRODINGER_REDIS_DB} flower
+  #   restart: unless-stopped
 
 volumes:
   postgres_data:

@@ -9,11 +9,12 @@ import cv2
 import redis
 from redis import Redis
 
+from schrodinger.config import settings
 from schrodinger.celery import celery
 from schrodinger.detection.detection import CocoClassId, EntityDetector
 
 
-redis_client = Redis("localhost", port=6379, db=0)
+redis_client = Redis(settings.REDIS_HOST, port=settings.REDIS_PORT, db=settings.REDIS_DB)
 
 
 STREAM_NAME = "frame_stream"

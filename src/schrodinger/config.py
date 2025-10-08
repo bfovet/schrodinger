@@ -4,9 +4,6 @@ env_file = ".env"
 
 
 class Settings(BaseSettings):
-    CELERY_BROKER_URL: str = "redis://localhost:6379/0"
-    CELERY_BACKEND_URL: str = "redis://localhost:6379/0"
-
     # Stream
     RTSP_USERNAME: str = ""
     RTSP_PASSWORD: str = ""
@@ -30,6 +27,15 @@ class Settings(BaseSettings):
     POSTGRES_READ_HOST: str | None = None
     POSTGRES_READ_PORT: int | None = None
     POSTGRES_READ_DATABASE: str | None = None
+
+    # Redis
+    REDIS_HOST: str = "127.0.0.1"
+    REDIS_PORT: int = 6379
+    REDIS_DB: int = 0
+
+    # Celery
+    CELERY_BROKER_URL: str = f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"
+    CELERY_BACKEND_URL: str = f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"
 
     # Downloadable files
     S3_FILES_BUCKET_NAME: str = "schrodinger-s3"

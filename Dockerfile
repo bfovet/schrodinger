@@ -1,4 +1,4 @@
-FROM python:3.13-slim AS builder
+FROM python:3.13-slim
 
 WORKDIR /app
 
@@ -11,7 +11,14 @@ apt-get update -qy
 apt-get install -qyy \
     -o APT::Install-Recommends=false \
     -o APT::Install-Suggests=false \
-    curl
+    curl \
+    libgl1 \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender1 \
+    libgomp1 \
+    libgthread-2.0-0
 EOT
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
@@ -20,30 +27,22 @@ ENV UV_PYTHON_CACHE_DIR=/root/.cache/uv/python \
     UV_LINK_MODE=copy \
     UV_COMPILE_BYTECODE=1 \
     UV_PYTHON_DOWNLOADS=never \
-    UV_PYTHON=python3.13
+    UV_PYTHON=python3.13 \
+    VIRTUAL_ENV=/app/.venv \
+    PATH="/app/.venv/bin:$PATH"
 
 # Install dependencies
 RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    uv sync --frozen --no-install-project
-    #uv sync --locked --no-install-project --no-editable
+    uv sync --locked --no-install-project
 
 # Copy the project into the intermediate image
 ADD . /app
 
 # Sync the project
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --no-dev
-    # uv sync --locked --no-editable
-
-FROM python:3.13-slim
-
-# Copy the environment, but not the source code
-COPY --from=builder --chown=app:app /app/.venv /app/.venv
-
-# Make sure we use venv
-ENV PATH="/app/.venv/bin:$PATH"
+    uv sync --locked
 
 # Expose port
 EXPOSE 8000
