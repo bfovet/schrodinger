@@ -1,17 +1,10 @@
 """Detect objects in a realtime stream"""
 
-from datetime import datetime
 import os
-import multiprocessing as mp
 import time
 
-import cv2
-import numpy as np
-
-from schrodinger.detection.detection import CocoClassId, EntityDetector
-
-from schrodinger.experimental.tasks import detect_object, fetch_frames
-from schrodinger.experimental.tasks import detect_object_streams, fetch_frames_streams
+# from schrodinger.experimental.tasks import detect_object, fetch_frames
+from schrodinger.experimental.tasks_ffmpeg import detect_object_streams, fetch_frames_streams
 
 
 RTSP_URL = os.getenv("RTSP_URL")
