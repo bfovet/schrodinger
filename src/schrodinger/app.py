@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from schrodinger.config import settings
 from schrodinger.api import router
 from schrodinger.experimental.tasks_ffmpeg import detect_object_streams, fetch_frames_streams
+from schrodinger.health.endpoints import router as health_router
 
 
 class State(TypedDict):
@@ -34,6 +35,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 def create_app() -> FastAPI:
     app = FastAPI(lifespan=lifespan)  # pyright: ignore[reportArgumentType]
 
+    app.include_router(health_router)
     app.include_router(router)
 
     return app
