@@ -12,13 +12,14 @@ apt-get install -qyy \
     -o APT::Install-Recommends=false \
     -o APT::Install-Suggests=false \
     curl \
+    ffmpeg \
     libgl1 \
     libglib2.0-0 \
     libsm6 \
     libxext6 \
     libxrender1 \
     libgomp1 \
-    libgthread-2.0-0
+    libgthread-2.0-0 \
 EOT
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
