@@ -1,9 +1,26 @@
+from enum import StrEnum
+import os
+from typing import Literal
+from pydantic import PostgresDsn
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-env_file = ".env"
+
+class Environment(StrEnum):
+    development = "development"
+    testing = "testing"
+    sandbox = "sandbox"
+    production = "production"
+
+env = Environment(os.getenv("SCHRODINGER_ENV", Environment.development))
+env_file = ".env.testing" if env == Environment.testing else ".env"
 
 
 class Settings(BaseSettings):
+    ENV: Environment = Environment.development
+    SQLALCHEMY_DEBUG: bool = False
+    LOG_LEVEL: str = "DEBUG"
+    TESTING: bool = False
+
     # Stream
     RTSP_USERNAME: str = ""
     RTSP_PASSWORD: str = ""
@@ -54,6 +71,65 @@ class Settings(BaseSettings):
                                       case_sensitive=False,
                                       env_file=env_file,
                                       extra="allow")
+
+    @property
+    def redis_url(self) -> str:
+        return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
+
+    def get_postgres_dsn(self, driver: Literal["asyncpg", "psycopg2"]) -> str:
+        return str(
+            PostgresDsn.build(
+                scheme=f"postgresql+{driver}",
+                username=self.POSTGRES_USER,
+                password=self.POSTGRES_PWD,
+                host=self.POSTGRES_HOST,
+                port=self.POSTGRES_PORT,
+                path=self.POSTGRES_DATABASE,
+            )
+        )
+
+    def is_read_replica_configured(self) -> bool:
+        return all(
+            [
+                self.POSTGRES_READ_USER,
+                self.POSTGRES_READ_PWD,
+                self.POSTGRES_READ_HOST,
+                self.POSTGRES_READ_PORT,
+                self.POSTGRES_READ_DATABASE,
+            ]
+        )
+
+    def get_postgres_read_dsn(
+        self, driver: Literal["asyncpg", "psycopg2"]
+    ) -> str | None:
+        if not self.is_read_replica_configured():
+            return None
+
+        return str(
+            PostgresDsn.build(
+                scheme=f"postgresql+{driver}",
+                username=self.POSTGRES_READ_USER,
+                password=self.POSTGRES_READ_PWD,
+                host=self.POSTGRES_READ_HOST,
+                port=self.POSTGRES_READ_PORT,
+                path=self.POSTGRES_READ_DATABASE,
+            )
+        )
+
+    def is_environment(self, environments: set[Environment]) -> bool:
+        return self.ENV in environments
+
+    def is_development(self) -> bool:
+        return self.is_environment({Environment.development})
+
+    def is_testing(self) -> bool:
+        return self.is_environment({Environment.testing})
+
+    def is_sandbox(self) -> bool:
+        return self.is_environment({Environment.sandbox})
+
+    def is_production(self) -> bool:
+        return self.is_environment({Environment.production})
 
 
 settings = Settings()
