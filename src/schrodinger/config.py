@@ -11,6 +11,7 @@ class Environment(StrEnum):
     sandbox = "sandbox"
     production = "production"
 
+
 env = Environment(os.getenv("SCHRODINGER_ENV", Environment.development))
 env_file = ".env.testing" if env == Environment.testing else ".env"
 
@@ -66,11 +67,13 @@ class Settings(BaseSettings):
     MINIO_USER: str = "schrodinger"
     MINIO_PWD: str = "schrodinger123"
 
-    model_config = SettingsConfigDict(env_prefix="schrodinger_",
-                                      env_file_encoding="utf-8",
-                                      case_sensitive=False,
-                                      env_file=env_file,
-                                      extra="allow")
+    model_config = SettingsConfigDict(
+        env_prefix="schrodinger_",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        env_file=env_file,
+        extra="allow",
+    )
 
     @property
     def redis_url(self) -> str:

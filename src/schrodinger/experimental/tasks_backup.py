@@ -25,7 +25,7 @@ def detect_object():
             "consumer1",
             {"frames": ">"},
             count=1,
-            block=2000  # Block for 2 seconds
+            block=2000,  # Block for 2 seconds
         )
 
         for stream_name, stream_frame in frames:
@@ -60,7 +60,11 @@ def fetch_frames(rtsp_url: str):
                 # _, buffer = cv2.imencode(".png", frame)
                 # frame_bytes = buffer.tobytes()
                 frame_bytes = pickle.dumps(frame)
-                redis_client.xadd("frames", {"timestamp": frame_time.timestamp(), "frame": frame_bytes}, maxlen=1000)
+                redis_client.xadd(
+                    "frames",
+                    {"timestamp": frame_time.timestamp(), "frame": frame_bytes},
+                    maxlen=1000,
+                )
                 # redis.set(f"frame:{frame_time.timestamp()}", frame_bytes)
 
     video.release()

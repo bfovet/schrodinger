@@ -77,7 +77,7 @@ def detect_object_streams():
                 CONSUMER_NAME,
                 {STREAM_NAME: last_id},
                 count=1,
-                block=100
+                block=100,
             )
 
             if not messages:
@@ -101,7 +101,9 @@ def detect_object_streams():
                                 frame, entity.box, entity.name, entity.confidence
                             )
 
-                            cv2.imwrite(f"{output_dir}/{timestamp:.6f}.png", annotated_frame)
+                            cv2.imwrite(
+                                f"{output_dir}/{timestamp:.6f}.png", annotated_frame
+                            )
 
                             detection_key = f"detection:{timestamp:.6f}"
                             detection_data = {
@@ -110,9 +112,13 @@ def detect_object_streams():
                                 "confidence": entity.confidence,
                                 "box": entity.box.xyxy[0].tolist(),
                             }
-                            redis_client.setex(detection_key, 3600, pickle.dumps(detection_data))
+                            redis_client.setex(
+                                detection_key, 3600, pickle.dumps(detection_data)
+                            )
 
-                            print(f"Detected {entity.name} with confidence {entity.confidence:.2f}")
+                            print(
+                                f"Detected {entity.name} with confidence {entity.confidence:.2f}"
+                            )
                     except Exception as e:
                         print(f"Error processing frame: {e}")
                     finally:

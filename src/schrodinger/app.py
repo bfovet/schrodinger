@@ -5,10 +5,23 @@ from fastapi import FastAPI
 
 from schrodinger.config import settings
 from schrodinger.api import router
-from schrodinger.experimental.tasks_ffmpeg import detect_object_streams, fetch_frames_streams
+from schrodinger.detection.tasks import detect_object
+from schrodinger.stream.tasks import fetch_frames
 from schrodinger.health.endpoints import router as health_router
-from schrodinger.kit.db.postgres import AsyncEngine, AsyncSessionMaker, Engine, SyncSessionMaker, create_async_sessionmaker, create_sync_sessionmaker
-from schrodinger.postgres import AsyncSessionMiddleware, create_async_engine, create_async_read_engine, create_sync_engine
+from schrodinger.kit.db.postgres import (
+    AsyncEngine,
+    AsyncSessionMaker,
+    Engine,
+    SyncSessionMaker,
+    create_async_sessionmaker,
+    create_sync_sessionmaker,
+)
+from schrodinger.postgres import (
+    AsyncSessionMiddleware,
+    create_async_engine,
+    create_async_read_engine,
+    create_sync_engine,
+)
 
 
 class State(TypedDict):
@@ -40,9 +53,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[State]:
     print(f"Stream URL: {rtsp_url}")
 
     task_ids = []
-    task_ids.append(fetch_frames_streams.delay(rtsp_url))
+    task_ids.append(fetch_frames.delay(rtsp_url))
     print(f"Started fetch_frames task: {task_ids[-1].id}")
-    task_ids.append(detect_object_streams.delay())
+    task_ids.append(detect_object.delay())
     print(f"Started detect_object task: {task_ids[-1].id}")
 
     print("Schrodinger API started")
@@ -58,7 +71,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[State]:
 
     for task_id in task_ids:
         AsyncResult(task_id).revoke(terminate=True)
-    
+
     print("Schrodinger API stopped")
 
 
@@ -70,7 +83,7 @@ def create_app() -> FastAPI:
 
     # /health
     app.include_router(health_router)
-    
+
     app.include_router(router)
 
     return app

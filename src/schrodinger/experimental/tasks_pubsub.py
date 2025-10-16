@@ -4,7 +4,6 @@ import pickle
 import time
 
 import cv2
-import redis
 from redis import Redis
 
 from schrodinger.celery import celery

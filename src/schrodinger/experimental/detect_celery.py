@@ -4,7 +4,10 @@ import os
 import time
 
 # from schrodinger.experimental.tasks import detect_object, fetch_frames
-from schrodinger.experimental.tasks_ffmpeg import detect_object_streams, fetch_frames_streams
+from schrodinger.experimental.tasks_ffmpeg import (
+    detect_object_streams,
+    fetch_frames_streams,
+)
 
 
 RTSP_URL = os.getenv("RTSP_URL")

@@ -17,7 +17,9 @@ from schrodinger.detection.detection import CocoClassId, EntityDetector
 RTSP_URL = os.getenv("RTSP_URL")
 
 
-def fetch_frames(rtsp_url: str, shared_arr, shared_frame_time, frame_ready, frame_shape):
+def fetch_frames(
+    rtsp_url: str, shared_arr, shared_frame_time, frame_ready, frame_shape
+):
     arr = np.frombuffer(shared_arr.get_obj(), dtype=np.uint8).reshape(frame_shape)
 
     video = cv2.VideoCapture()
@@ -55,7 +57,10 @@ def detect_object(shared_arr, shared_frame_time, frame_ready, frame_shape):
 
     while True:
         with frame_ready:
-            if shared_frame_time.value == frame_time or (now - shared_frame_time.value) > 0.5:
+            if (
+                shared_frame_time.value == frame_time
+                or (now - shared_frame_time.value) > 0.5
+            ):
                 frame_ready.wait()
 
         frame_time = shared_frame_time.value
@@ -125,10 +130,16 @@ def main():
     shared_frame_time = mp.Value("d", 0.0)
     frame_ready = mp.Condition()
 
-    capture_process = mp.Process(target=fetch_frames, args=(RTSP_URL, shared_arr, shared_frame_time, frame_ready, frame_shape))
+    capture_process = mp.Process(
+        target=fetch_frames,
+        args=(RTSP_URL, shared_arr, shared_frame_time, frame_ready, frame_shape),
+    )
     capture_process.daemon = True
 
-    detection_process = mp.Process(target=detect_object, args=(shared_arr, shared_frame_time, frame_ready, frame_shape))
+    detection_process = mp.Process(
+        target=detect_object,
+        args=(shared_arr, shared_frame_time, frame_ready, frame_shape),
+    )
     detection_process.daemon = True
 
     capture_process.start()
