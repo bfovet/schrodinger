@@ -47,7 +47,7 @@ class Settings(BaseSettings):
     POSTGRES_READ_DATABASE: str | None = None
 
     # Redis
-    REDIS_HOST: str = "127.0.0.1"
+    REDIS_HOST: str = "redis"
     REDIS_PORT: int = 6379
     REDIS_DB: int = 0
 
