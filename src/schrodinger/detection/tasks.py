@@ -2,6 +2,7 @@ import os
 import time
 from datetime import datetime
 import pickle
+import uuid
 
 import cv2
 from celery.utils.log import get_task_logger
@@ -11,6 +12,11 @@ import redis
 from schrodinger.config import settings
 from schrodinger.celery import celery
 from schrodinger.detection.detection import CocoClassId, EntityDetector
+from schrodinger.integrations.aws.s3.service import S3Service
+from schrodinger.kit.db.postgres import create_sync_sessionmaker
+from schrodinger.models import Event
+from schrodinger.postgres import create_sync_engine
+# from schrodinger.worker._sqlalchemy import DatabaseTask
 
 # SCHRODINGER_RTSP_USERNAME = os.environ.get("USERNAME")
 # SCHRODINGER_RTSP_PASSWORD = os.environ.get("PASSWORD")
@@ -27,6 +33,24 @@ redis_client = Redis(
 STREAM_NAME = "frame_stream"
 CONSUMER_GROUP = "detection_group"
 CONSUMER_NAME = "detector_1"
+
+
+class DetectionTask(celery.Task):
+    _s3_service = None
+    _session_maker = None
+
+    @property
+    def s3_service(self):
+        if self._s3_service is None:
+            self._s3_service = S3Service(settings.S3_FILES_BUCKET_NAME)
+        return self._s3_service
+
+    @property
+    def session_maker(self):
+        if self._session_maker is None:
+            sync_engine = create_sync_engine("worker")
+            self._session_maker = create_sync_sessionmaker(sync_engine)
+        return self._session_maker
 
 
 # @celery.task(pydantic=True)
@@ -142,12 +166,13 @@ def annotate_frame(frame, box, object_name, confidence):
     return annotated_frame
 
 
-@celery.task(name="detect_object")
-def detect_object():
+# @celery.task(name="detect_object", base=DatabaseTask, bind=True)
+@celery.task(name="detect_object", base=DetectionTask, bind=True)
+def detect_object(self):
     entity_detector = EntityDetector()
 
-    output_dir = "images"
-    os.makedirs(output_dir, exist_ok=True)
+    # output_dir = "images"
+    # os.makedirs(output_dir, exist_ok=True)
 
     try:
         redis_client.xgroup_create(STREAM_NAME, CONSUMER_GROUP, id="0", mkstream=True)
@@ -187,9 +212,9 @@ def detect_object():
                                 frame, entity.box, entity.name, entity.confidence
                             )
 
-                            cv2.imwrite(
-                                f"{output_dir}/{timestamp:.6f}.png", annotated_frame
-                            )
+                            # cv2.imwrite(
+                            #     f"{output_dir}/{timestamp:.6f}.png", annotated_frame
+                            # )
 
                             detection_key = f"detection:{timestamp:.6f}"
                             detection_data = {
@@ -205,6 +230,27 @@ def detect_object():
                             print(
                                 f"Detected {entity.name} with confidence {entity.confidence:.2f} at {datetime.fromtimestamp(timestamp)}"
                             )
+
+                            frame_bytes = cv2.imencode(".png", frame)[1].tobytes()
+                            frame_s3_key = f"{uuid.uuid4()}/{entity.name}_entered_{timestamp}.png"
+                            self.s3_service.upload(frame_bytes, frame_s3_key, mime_type="image/png")
+
+                            annotated_frame_bytes = cv2.imencode(".png", annotated_frame)[1].tobytes()
+                            annotated_frame_s3_key = f"{uuid.uuid4()}/annotated_{entity.name}_entered_{timestamp}.png"
+                            self.s3_service.upload(annotated_frame_bytes, annotated_frame_s3_key, mime_type="image/png")
+
+                            # Create event using sync session
+                            with self.session_maker() as session:
+                                event = Event(
+                                    entity_id=entity.class_id,
+                                    name=entity.name,
+                                    timestamp=datetime.fromtimestamp(timestamp),
+                                    start_time=datetime.fromtimestamp(timestamp),
+                                    s3_key=annotated_frame_s3_key
+                                )
+                                session.add(event)
+                                session.commit()
+
                     except Exception as e:
                         print(f"Error processing frame: {e}")
                     finally:
