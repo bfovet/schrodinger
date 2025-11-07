@@ -1,6 +1,13 @@
-from schrodinger.kit.db.postgres import AsyncReadSession, AsyncSession
+from collections.abc import Sequence
+from uuid import UUID
+
+from schrodinger.kit.repository.base import RepositoryBase, RepositoryIDMixin
+from schrodinger.models.event import Event
 
 
-class EventRepository:
-    def __init__(self, session: AsyncSession | AsyncReadSession) -> None:
-        self.session = session
+class EventRepository(RepositoryBase[Event], RepositoryIDMixin[Event, UUID]):
+    model = Event
+
+    async def get_all_by_name(self, name: str) -> Sequence[Event]:
+        statement = self.get_base_statement().where(Event.name == name)
+        return await self.get_all(statement)
