@@ -1,0 +1,179 @@
+services:
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=${SCHRODINGER_MINIO_USER}
+      - MINIO_ROOT_PASSWORD=${SCHRODINGER_MINIO_PWD}
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  minio-setup:
+    image: minio/mc:latest
+    depends_on:
+      - minio
+    volumes:
+      - ./.minio:/tmp/config
+    environment:
+      - MINIO_HOST=minio
+      - MINIO_ROOT_USER=${SCHRODINGER_MINIO_USER}
+      - MINIO_ROOT_PASSWORD=${SCHRODINGER_MINIO_PWD}
+      - BUCKET_NAME=${SCHRODINGER_S3_FILES_BUCKET_NAME}
+      - PUBLIC_BUCKET_NAME=${SCHRODINGER_S3_FILES_PUBLIC_BUCKET_NAME}
+      - BUCKET_TESTING_NAME=testing-${SCHRODINGER_S3_FILES_BUCKET_NAME}
+      - POLICY_FILE=/tmp/config/policy.json
+      - ACCESS_KEY=${SCHRODINGER_AWS_ACCESS_KEY_ID}
+      - SECRET_ACCESS_KEY=${SCHRODINGER_AWS_SECRET_ACCESS_KEY}
+    entrypoint:
+      [
+        "bash", "-c", "chmod +x /tmp/config/configure.sh && /tmp/config/configure.sh"
+      ]
+
+  db:
+    image: postgres:18.0-alpine
+    container_name: postgres
+    environment:
+      - POSTGRES_USER=${SCHRODINGER_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${SCHRODINGER_POSTGRES_PWD}
+      - POSTGRES_DB=${SCHRODINGER_POSTGRES_DATABASE}
+      - POSTGRES_PORT=${SCHRODINGER_POSTGRES_PORT}
+      - SCHRODINGER_READ_USER=${SCHRODINGER_POSTGRES_READ_USER:-schrodinger_read}
+      - SCHRODINGER_READ_PASSWORD=${SCHRODINGER_POSTGRES_READ_PWD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+      - ./init-readonly-user.sql:/docker-entrypoint-initdb.d/init-readonly-user.sql
+    ports:
+      - "${SCHRODINGER_POSTGRES_PORT}:${SCHRODINGER_POSTGRES_PORT}"
+    expose:
+      - ${SCHRODINGER_POSTGRES_PORT}
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "pg_isready",
+          "-q",
+          "-d",
+          "${SCHRODINGER_POSTGRES_DATABASE}",
+          "-U",
+          "${SCHRODINGER_POSTGRES_USER}",
+        ]
+      timeout: 40s
+      interval: 2s
+      retries: 20
+
+  redis:
+    image: redis:8.2.1-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  schrodinger:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    develop:
+      watch:
+        - action: sync
+          path: ..
+          target: /app
+          # Exclude the project virtual environment
+          # ignore:
+          #   - .venv/
+
+        - action: rebuild
+          path: pyproject.toml
+    container_name: schrodinger_server
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+      - minio
+    environment:
+      - CELERY_BROKER_URL=redis://${SCHRODINGER_REDIS_HOST}:${SCHRODINGER_REDIS_PORT}/${SCHRODINGER_REDIS_DB}
+      - CELERY_RESULT_BACKEND=redis://${SCHRODINGER_REDIS_HOST}:${SCHRODINGER_REDIS_PORT}/${SCHRODINGER_REDIS_DB}
+      # - MINIO_ENDPOINT=${SCHRODINGER_S3_ENDPOINT_URL}
+      # - MINIO_ACCESS_KEY=${SCHRODINGER_MINIO_USER}
+      # - MINIO_SECRET_KEY=${SCHRODINGER_MINIO_PWD}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  celery-worker:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: celery-worker
+    depends_on:
+      - redis
+      # - minio
+    environment:
+      - CELERY_BROKER_URL=redis://${SCHRODINGER_REDIS_HOST}:${SCHRODINGER_REDIS_PORT}/${SCHRODINGER_REDIS_DB}
+      - CELERY_RESULT_BACKEND=redis://${SCHRODINGER_REDIS_HOST}:${SCHRODINGER_REDIS_PORT}/${SCHRODINGER_REDIS_DB}
+      # - MINIO_ENDPOINT=${SCHRODINGER_S3_ENDPOINT_URL}
+      # - MINIO_ACCESS_KEY=${SCHRODINGER_MINIO_USER}
+      # - MINIO_SECRET_KEY=${SCHRODINGER_MINIO_PWD}
+    command: uv run celery -A schrodinger_server.celery.celery worker --loglevel=info
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "uv", "run", "celery", "-A", "schrodinger_server.celery.celery", "inspect", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # celery-beat:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   container_name: celery-beat
+  #   depends_on:
+  #     - redis
+  #     - minio
+  #   environment:
+  #     - CELERY_BROKER_URL=redis://redis:6379/0
+  #     - CELERY_RESULT_BACKEND=redis://redis:6379/0
+  #     - MINIO_ENDPOINT=minio:9000
+  #     - MINIO_ACCESS_KEY=minio
+  #     - MINIO_SECRET_KEY=minioadmin123
+  #   command: celery -A schrodinger_server.celery.celery beat --loglevel=info
+  #   restart: unless-stopped
+
+  # flower:
+  #   image: mher/flower:2.0.1
+  #   container_name: flower
+  #   ports:
+  #     - "5555:5555"
+  #   depends_on:
+  #     - redis
+  #   environment:
+  #     - CELERY_BROKER_URL=redis://${SCHRODINGER_REDIS_HOST}:${SCHRODINGER_REDIS_HOST}/${SCHRODINGER_REDIS_DB}
+  #     - FLOWER_PORT=5555
+  #   command: celery --broker=redis://${SCHRODINGER_REDIS_HOST}:${SCHRODINGER_REDIS_HOST}/${SCHRODINGER_REDIS_DB} flower
+  #   restart: unless-stopped
+
+volumes:
+  postgres_data:
+  minio_data:
+    driver: local
+  redis_data:
