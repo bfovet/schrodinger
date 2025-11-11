@@ -1,8 +1,42 @@
 from collections.abc import Sequence
-from typing import Any, Self
+from typing import Any, Protocol, Self, TypeAlias
 from sqlalchemy import Select, func, select
+from sqlalchemy.orm import Mapped
 from sqlalchemy.orm.attributes import flag_modified
+from sqlalchemy.sql.base import ExecutableOption
+
 from schrodinger.kit.db.postgres import AsyncReadSession, AsyncSession
+
+
+class ModelIDProtocol[ID_TYPE](Protocol):
+    id: Mapped[ID_TYPE]
+
+
+Options: TypeAlias = Sequence[ExecutableOption]
+
+
+class RepositoryProtocol[M](Protocol):
+    model: type[M]
+
+    async def get_one_or_none(self, statement: Select[tuple[M]]) -> M | None: ...
+
+    async def get_all(self, statement: Select[tuple[M]]) -> Sequence[M]: ...
+
+    async def paginate(
+        self, statement: Select[tuple[M]], *, limit: int, page: int
+    ) -> tuple[list[M], int]: ...
+
+    def get_base_statement(self) -> Select[tuple[M]]: ...
+
+    async def create(self, object: M, *, flush: bool = False) -> M: ...
+
+    async def update(
+        self,
+        object: M,
+        *,
+        update_dict: dict[str, Any] | None = None,
+        flush: bool = False,
+    ) -> M: ...
 
 
 class RepositoryBase[M]:
@@ -65,3 +99,9 @@ class RepositoryBase[M]:
     @classmethod
     def from_session(cls, session: AsyncSession | AsyncReadSession) -> Self:
         return cls(session)
+
+
+class RepositoryIDMixin[MODEL_ID: ModelIDProtocol, ID_TYPE]:
+    async def get_by_id(self: RepositoryProtocol[MODEL_ID], id: ID_TYPE, *, options: Options = ()) -> MODEL_ID  | None:
+        statement = self.get_base_statement().where(self.model.id == id).options(*options)
+        return await self.get_one_or_none(statement)
