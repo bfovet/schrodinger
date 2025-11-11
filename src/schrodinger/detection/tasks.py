@@ -14,11 +14,6 @@ from schrodinger.worker.redis import RedisTask
 from schrodinger.worker.s3 import S3ServiceTask
 from schrodinger.worker.sqlalchemy import SQLAlachemyTask
 
-# SCHRODINGER_RTSP_USERNAME = os.environ.get("USERNAME")
-# SCHRODINGER_RTSP_PASSWORD = os.environ.get("PASSWORD")
-# SCHRODINGER_RTSP_HOST_IP_ADDRESS = os.environ.get("HOST_IP_ADDRESS")
-# SCHRODINGER_RTSP_STREAM_NAME = os.environ.get("STREAM_NAME")
-
 logger = get_task_logger("test")
 
 

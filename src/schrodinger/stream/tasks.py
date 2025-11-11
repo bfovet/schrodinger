@@ -8,10 +8,7 @@ from redis import Redis
 
 from schrodinger.config import settings
 from schrodinger.celery import celery
-
-redis_client = Redis(
-    settings.REDIS_HOST, port=settings.REDIS_PORT, db=settings.REDIS_DB
-)
+from schrodinger.worker.redis import RedisTask
 
 
 STREAM_NAME = "frame_stream"
@@ -42,8 +39,8 @@ def get_stream_resolution(rtsp_url: str) -> tuple[int, int]:
     return width, height
 
 
-@celery.task(name="fetch_frames")
-def fetch_frames(rtsp_url: str):
+@celery.task(name="fetch_frames", base=RedisTask, bind=True)
+def fetch_frames(self, rtsp_url: str):
     process: subprocess.Popen | None = None
     width, height = get_stream_resolution(rtsp_url)
     while True:
@@ -89,7 +86,7 @@ def fetch_frames(rtsp_url: str):
                 frame_time = datetime.now()
                 frame_data = {"timestamp": frame_time.timestamp(), "frame": frame}
 
-                redis_client.xadd(
+                self.redis.xadd(
                     STREAM_NAME,
                     {
                         "frame_data": pickle.dumps(frame_data),
