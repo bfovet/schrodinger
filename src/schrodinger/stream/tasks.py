@@ -4,9 +4,7 @@ import time
 import subprocess
 
 import numpy as np
-from redis import Redis
 
-from schrodinger.config import settings
 from schrodinger.celery import celery
 from schrodinger.worker.redis import RedisTask
 
