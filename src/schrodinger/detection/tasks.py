@@ -10,10 +10,9 @@ import redis
 from schrodinger.celery import celery
 from schrodinger.detection.detection import CocoClassId, EntityDetector
 from schrodinger.models import Event
-from schrodinger.worker._redis import RedisTask
-from schrodinger.worker._s3 import S3ServiceTask
-from schrodinger.worker._sqlalchemy import SQLAlachemyTask
-# from schrodinger.worker._sqlalchemy import DatabaseTask
+from schrodinger.worker.redis import RedisTask
+from schrodinger.worker.s3 import S3ServiceTask
+from schrodinger.worker.sqlalchemy import SQLAlachemyTask
 
 # SCHRODINGER_RTSP_USERNAME = os.environ.get("USERNAME")
 # SCHRODINGER_RTSP_PASSWORD = os.environ.get("PASSWORD")
