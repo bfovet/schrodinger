@@ -101,7 +101,7 @@ services:
 
         - action: rebuild
           path: pyproject.toml
-    container_name: schrodinger_server
+    container_name: schrodinger-server
     ports:
       - "8000:8000"
     depends_on:

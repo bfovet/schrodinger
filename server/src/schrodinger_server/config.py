@@ -29,8 +29,8 @@ class Settings(BaseSettings):
     RTSP_STREAM_NAME: str = ""
 
     # Database
-    POSTGRES_USER: str = "schrodinger_server"
-    POSTGRES_PWD: str = "schrodinger_server"
+    POSTGRES_USER: str = "schrodinger"
+    POSTGRES_PWD: str = "schrodinger"
     POSTGRES_HOST: str = "127.0.0.1"
     POSTGRES_PORT: int = 5432
     POSTGRES_DATABASE: str = "schrodinger_development"
@@ -56,15 +56,15 @@ class Settings(BaseSettings):
     CELERY_BACKEND_URL: str = f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"
 
     # Downloadable files
-    S3_FILES_BUCKET_NAME: str = "schrodinger_server-s3"
-    S3_FILES_PUBLIC_BUCKET_NAME: str = "schrodinger_server-s3-public"
+    S3_FILES_BUCKET_NAME: str = "schrodinger-s3"
+    S3_FILES_PUBLIC_BUCKET_NAME: str = "schrodinger-s3-public"
     S3_FILES_PRESIGN_TTL: int = 600  # 10 minutes
     S3_FILES_DOWNLOAD_SECRET: str = "supersecret"
     S3_FILES_DOWNLOAD_SALT: str = "saltysalty"
     # Override to http://127.0.0.1:9000 in .env during development
     S3_ENDPOINT_URL: str | None = None
 
-    MINIO_USER: str = "schrodinger_server"
+    MINIO_USER: str = "schrodinger"
     MINIO_PWD: str = "schrodinger123"
 
     model_config = SettingsConfigDict(
