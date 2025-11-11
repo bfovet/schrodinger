@@ -1,9 +1,9 @@
-"""                                                                                                                            
-Custom Celery task class with SQLAlchemy session management.                                                                   
-                                                                                                                            
-This module provides a base task class that automatically manages database                                                     
-sessions throughout the task lifecycle.                                                                                        
-"""                                                                 
+"""
+Custom Celery task class with SQLAlchemy session management.
+
+This module provides a base task class that automatically manages database
+sessions throughout the task lifecycle.
+"""
 
 from celery import Task
 from celery.utils.log import get_task_logger

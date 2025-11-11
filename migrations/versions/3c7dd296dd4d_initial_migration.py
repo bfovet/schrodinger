@@ -1,10 +1,11 @@
 """initial migration
 
 Revision ID: 3c7dd296dd4d
-Revises: 
+Revises:
 Create Date: 2025-10-26 12:55:34.770375
 
 """
+
 from typing import Sequence, Union
 
 from alembic import op
@@ -12,7 +13,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '3c7dd296dd4d'
+revision: str = "3c7dd296dd4d"
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -30,38 +31,15 @@ def upgrade() -> None:
         sa.Column("start_time", sa.TIMESTAMP(timezone=True), nullable=False),
         sa.Column("end_time", sa.TIMESTAMP(timezone=True), nullable=True),
         sa.Column("s3_key", sa.String(500), nullable=True),
-        sa.PrimaryKeyConstraint("id", name=op.f("events_pkey"))
+        sa.PrimaryKeyConstraint("id", name=op.f("events_pkey")),
     )
+    op.create_index(op.f("ix_events_entity_id"), "events", ["entity_id"], unique=False)
+    op.create_index(op.f("ix_events_name"), "events", ["name"], unique=False)
+    op.create_index(op.f("ix_events_timestamp"), "events", ["timestamp"], unique=False)
     op.create_index(
-        op.f("ix_events_entity_id"),
-        "events",
-        ["entity_id"],
-        unique=False
+        op.f("ix_events_start_time"), "events", ["start_time"], unique=False
     )
-    op.create_index(
-        op.f("ix_events_name"),
-        "events",
-        ["name"],
-        unique=False
-    )
-    op.create_index(
-        op.f("ix_events_timestamp"),
-        "events",
-        ["timestamp"],
-        unique=False
-    )
-    op.create_index(
-        op.f("ix_events_start_time"),
-        "events",
-        ["start_time"],
-        unique=False
-    )
-    op.create_index(
-        op.f("ix_events_end_time"),
-        "events",
-        ["end_time"],
-        unique=False
-    )
+    op.create_index(op.f("ix_events_end_time"), "events", ["end_time"], unique=False)
     # ### end Alembic commands ###
 
 

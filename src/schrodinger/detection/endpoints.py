@@ -1,9 +1,7 @@
 from typing import Any
 
-from celery.result import AsyncResult
 from fastapi import APIRouter
 
-from schrodinger.celery import celery
 
 router = APIRouter(prefix="/detection", redirect_slashes=True, tags=["detection"])
 

@@ -30,12 +30,19 @@ async def list(
 ) -> Sequence[EventSchema]:
     """List events."""
 
-    results, count = await event_service.list(session, start_timestamp=start_timestamp, end_timestamp=end_timestamp, name=name)
+    results, count = await event_service.list(
+        session, start_timestamp=start_timestamp, end_timestamp=end_timestamp, name=name
+    )
 
     return results
 
 
-@router.post("/{id}", summary="Get Event", response_model=EventSchema, responses={404: EventNotFound})
+@router.post(
+    "/{id}",
+    summary="Get Event",
+    response_model=EventSchema,
+    responses={404: EventNotFound},
+)
 async def get(id: EventID, session: AsyncSession = Depends(get_db_session)) -> Event:
     """
     Get an event by ID.
@@ -44,5 +51,5 @@ async def get(id: EventID, session: AsyncSession = Depends(get_db_session)) -> E
 
     if event is None:
         raise ResourceNotFound()
-    
+
     return event

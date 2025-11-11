@@ -20,18 +20,16 @@ CONSUMER_NAME = "detector_1"
 
 
 def get_stream_resolution(rtsp_url: str) -> tuple[int, int]:
+    # fmt: off
     probe_cmd = [
         "ffprobe",
-        "-v",
-        "error",
-        "-select_streams",
-        "v:0",
-        "-show_entries",
-        "stream=width,height",
-        "-of",
-        "csv=p=0",
+        "-v", "error",
+        "-select_streams", "v:0",
+        "-show_entries", "stream=width,height",
+        "-of", "csv=p=0",
         rtsp_url,
     ]
+    # fmt: on
 
     probe_result = subprocess.run(probe_cmd, capture_output=True, text=True, timeout=10)
 
@@ -46,35 +44,28 @@ def get_stream_resolution(rtsp_url: str) -> tuple[int, int]:
 
 @celery.task(name="fetch_frames")
 def fetch_frames(rtsp_url: str):
+    process: subprocess.Popen | None = None
     width, height = get_stream_resolution(rtsp_url)
     while True:
         try:
             frame_size = width * height * 3
 
-            # FFmpeg command
+            # fmt: off
             ffmpeg_cmd = [
                 "ffmpeg",
-                "-rtsp_transport",
-                "tcp",
-                "-fflags",
-                "nobuffer+discardcorrupt",
-                "-flags",
-                "low_delay",
-                "-analyzeduration",
-                "1",
-                "-probesize",
-                "32",
-                "-i",
-                rtsp_url,
-                "-f",
-                "rawvideo",
-                "-pix_fmt",
-                "bgr24",
+                "-rtsp_transport", "tcp",
+                "-fflags", "nobuffer+discardcorrupt",
+                "-flags", "low_delay",
+                "-analyzeduration", "1",
+                "-probesize", "32",
+                "-i", rtsp_url,
+                "-f", "rawvideo",
+                "-pix_fmt", "bgr24",
                 "-an",  # Disable audio
-                "-vf",
-                "fps=10",  # Limit to 10 fps to reduce processing load
+                "-vf", "fps=10",  # Limit to 10 fps to reduce processing load
                 "-",
             ]
+            # fmt: on
 
             process = subprocess.Popen(
                 ffmpeg_cmd,
@@ -119,8 +110,5 @@ def fetch_frames(rtsp_url: str):
         except Exception as e:
             print(f"Error in FFmpeg capture: {e}")
             if "process" in locals():
-                try:
-                    process.kill()
-                except:
-                    pass
+                process.kill()
             time.sleep(2)

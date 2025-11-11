@@ -17,7 +17,13 @@ class Event(Base):
     )
     entity_id: Mapped[int] = mapped_column(Integer, nullable=True, index=True)
     name: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
-    timestamp: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=False, default=utc_now, index=True)
-    start_time: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=False, default=utc_now, index=True)
-    end_time: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=True, default=utc_now, index=True)
+    timestamp: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True), nullable=False, default=utc_now, index=True
+    )
+    start_time: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True), nullable=False, default=utc_now, index=True
+    )
+    end_time: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True), nullable=True, default=utc_now, index=True
+    )
     s3_key: Mapped[str] = mapped_column(String(500), nullable=True)

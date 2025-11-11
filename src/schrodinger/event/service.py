@@ -7,10 +7,14 @@ from schrodinger.models.event import Event
 
 
 class EventService:
-    async def list(self, session: AsyncSession, *,
-                   start_timestamp: datetime | None = None,
-                   end_timestamp: datetime | None = None,
-                   name: Sequence[str] | None = None) -> tuple[Sequence[Event], int]:
+    async def list(
+        self,
+        session: AsyncSession,
+        *,
+        start_timestamp: datetime | None = None,
+        end_timestamp: datetime | None = None,
+        name: Sequence[str] | None = None,
+    ) -> tuple[Sequence[Event], int]:
         repository = EventRepository.from_session(session)
         statement = repository.get_base_statement()
 
@@ -31,8 +35,7 @@ class EventService:
         statement = repository.get_base_statement().where(Event.id == id)
         return await repository.get_one_or_none(statement)
 
-    async def create(
-        self, session: AsyncSession, event: Event) -> Event:
+    async def create(self, session: AsyncSession, event: Event) -> Event:
         repository = EventRepository.from_session(session)
         event = await repository.create(event, flush=True)
 

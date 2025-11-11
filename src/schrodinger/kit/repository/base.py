@@ -102,6 +102,10 @@ class RepositoryBase[M]:
 
 
 class RepositoryIDMixin[MODEL_ID: ModelIDProtocol, ID_TYPE]:
-    async def get_by_id(self: RepositoryProtocol[MODEL_ID], id: ID_TYPE, *, options: Options = ()) -> MODEL_ID  | None:
-        statement = self.get_base_statement().where(self.model.id == id).options(*options)
+    async def get_by_id(
+        self: RepositoryProtocol[MODEL_ID], id: ID_TYPE, *, options: Options = ()
+    ) -> MODEL_ID | None:
+        statement = (
+            self.get_base_statement().where(self.model.id == id).options(*options)
+        )
         return await self.get_one_or_none(statement)
