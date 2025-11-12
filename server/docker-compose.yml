@@ -21,7 +21,8 @@ services:
   minio-setup:
     image: minio/mc:latest
     depends_on:
-      - minio
+      minio:
+        condition: service_healthy
     volumes:
       - ./.minio:/tmp/config
     environment:
