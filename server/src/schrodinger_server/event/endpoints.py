@@ -1,13 +1,15 @@
 from collections.abc import Sequence
+
 from fastapi import APIRouter, Depends, Query
 from pydantic import AwareDatetime
 
+from schrodinger_server.event.schemas import Event as EventSchema
+from schrodinger_server.event.schemas import EventID
+from schrodinger_server.event.service import event as event_service
 from schrodinger_server.exceptions import ResourceNotFound
 from schrodinger_server.kit.db.postgres import AsyncSession
 from schrodinger_server.models.event import Event
 from schrodinger_server.postgres import get_db_session
-from schrodinger_server.event.schemas import Event as EventSchema, EventID
-from schrodinger_server.event.service import event as event_service
 
 router = APIRouter(prefix="/events", redirect_slashes=True, tags=["events"])
 

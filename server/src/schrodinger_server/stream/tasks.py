@@ -1,13 +1,12 @@
-from datetime import datetime
 import pickle
-import time
 import subprocess
+import time
+from datetime import datetime
 
 import numpy as np
 
 from schrodinger_server.celery import celery
 from schrodinger_server.worker.redis import RedisTask
-
 
 STREAM_NAME = "frame_stream"
 CONSUMER_GROUP = "detection_group"

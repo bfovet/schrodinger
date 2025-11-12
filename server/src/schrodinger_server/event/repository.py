@@ -1,7 +1,8 @@
 from collections.abc import Sequence
 from uuid import UUID
 
-from schrodinger_server.kit.repository.base import RepositoryBase, RepositoryIDMixin
+from schrodinger_server.kit.repository.base import (RepositoryBase,
+                                                    RepositoryIDMixin)
 from schrodinger_server.models.event import Event
 
 

@@ -1,7 +1,9 @@
 from datetime import datetime
 from typing import Annotated
+
 from fastapi import Path
 from pydantic import UUID4, Field
+
 from schrodinger_server.detection.detection import CocoClassId
 from schrodinger_server.kit.schemas import IDSchema, Schema
 

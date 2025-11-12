@@ -1,5 +1,6 @@
 from collections.abc import Sequence
 from typing import Any, Protocol, Self, TypeAlias
+
 from sqlalchemy import Select, func, select
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm.attributes import flag_modified

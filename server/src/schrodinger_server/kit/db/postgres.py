@@ -2,11 +2,10 @@ from typing import Any, NewType, TypeAlias
 
 from sqlalchemy import Engine
 from sqlalchemy import create_engine as _create_engine
-from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncEngine
 from sqlalchemy.ext.asyncio import AsyncSession as _AsyncSession
-from sqlalchemy.ext.asyncio import (
-    create_async_engine as _create_async_engine,
-)
+from sqlalchemy.ext.asyncio import async_sessionmaker
+from sqlalchemy.ext.asyncio import create_async_engine as _create_async_engine
 from sqlalchemy.orm import Session, sessionmaker
 
 from schrodinger_server.kit.extensions.sqlalchemy import sql
