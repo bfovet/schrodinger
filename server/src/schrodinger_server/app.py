@@ -3,25 +3,19 @@ from typing import AsyncIterator, TypedDict
 from celery.result import AsyncResult
 from fastapi import FastAPI
 
-from schrodinger_server.config import settings
 from schrodinger_server.api import router
+from schrodinger_server.config import settings
 from schrodinger_server.detection.tasks import detect_object
-from schrodinger_server.stream.tasks import fetch_frames
 from schrodinger_server.health.endpoints import router as health_router
-from schrodinger_server.kit.db.postgres import (
-    AsyncEngine,
-    AsyncSessionMaker,
-    Engine,
-    SyncSessionMaker,
-    create_async_sessionmaker,
-    create_sync_sessionmaker,
-)
-from schrodinger_server.postgres import (
-    AsyncSessionMiddleware,
-    create_async_engine,
-    create_async_read_engine,
-    create_sync_engine,
-)
+from schrodinger_server.kit.db.postgres import (AsyncEngine, AsyncSessionMaker,
+                                                Engine, SyncSessionMaker,
+                                                create_async_sessionmaker,
+                                                create_sync_sessionmaker)
+from schrodinger_server.postgres import (AsyncSessionMiddleware,
+                                         create_async_engine,
+                                         create_async_read_engine,
+                                         create_sync_engine)
+from schrodinger_server.stream.tasks import fetch_frames
 
 
 class State(TypedDict):
@@ -52,8 +46,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[State]:
 
     print(f"Stream URL: {rtsp_url}")
 
-    task_ids = []
-    task_ids.append(fetch_frames.delay(rtsp_url))
+    task_ids = [fetch_frames.delay(rtsp_url)]
     print(f"Started fetch_frames task: {task_ids[-1].id}")
     task_ids.append(detect_object.delay())
     print(f"Started detect_object task: {task_ids[-1].id}")

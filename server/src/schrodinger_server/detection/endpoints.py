@@ -2,7 +2,6 @@ from typing import Any
 
 from fastapi import APIRouter
 
-
 router = APIRouter(prefix="/detection", redirect_slashes=True, tags=["detection"])
 
 

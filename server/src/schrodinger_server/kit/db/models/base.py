@@ -1,7 +1,6 @@
 from sqlalchemy import MetaData
 from sqlalchemy.orm import DeclarativeBase
 
-
 my_metadata = MetaData(
     naming_convention={
         "ix": "ix_%(column_0_N_label)s",
