@@ -21,7 +21,8 @@ services:
   minio-setup:
     image: minio/mc:latest
     depends_on:
-      - minio
+      minio:
+        condition: service_healthy
     volumes:
       - ./.minio:/tmp/config
     environment:
@@ -71,6 +72,23 @@ services:
       interval: 2s
       retries: 20
 
+  db-migrations:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: db-migrations
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - SCHRODINGER_POSTGRES_USER=${SCHRODINGER_POSTGRES_USER}
+      - SCHRODINGER_POSTGRES_PWD=${SCHRODINGER_POSTGRES_PWD}
+      - SCHRODINGER_POSTGRES_DATABASE=${SCHRODINGER_POSTGRES_DATABASE}
+      - SCHRODINGER_POSTGRES_HOST=db
+      - SCHRODINGER_POSTGRES_PORT=${SCHRODINGER_POSTGRES_PORT}
+    command: uv run alembic upgrade head
+    restart: "no"
+
   redis:
     image: redis:8.2.1-alpine
     container_name: redis
@@ -88,7 +106,7 @@ services:
 
   schrodinger:
     build:
-      context: ..
+      context: .
       dockerfile: Dockerfile
     develop:
       watch:
@@ -105,8 +123,8 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      - redis
-      - minio
+      celery-worker:
+        condition: service_healthy
     environment:
       - CELERY_BROKER_URL=redis://${SCHRODINGER_REDIS_HOST}:${SCHRODINGER_REDIS_PORT}/${SCHRODINGER_REDIS_DB}
       - CELERY_RESULT_BACKEND=redis://${SCHRODINGER_REDIS_HOST}:${SCHRODINGER_REDIS_PORT}/${SCHRODINGER_REDIS_DB}
@@ -122,12 +140,20 @@ services:
 
   celery-worker:
     build:
-      context: ..
+      context: .
       dockerfile: Dockerfile
     container_name: celery-worker
     depends_on:
-      - redis
-      # - minio
+      redis:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+      db-migrations:
+        condition: service_completed_successfully
+      minio:
+        condition: service_healthy
+      minio-setup:
+        condition: service_completed_successfully
     environment:
       - CELERY_BROKER_URL=redis://${SCHRODINGER_REDIS_HOST}:${SCHRODINGER_REDIS_PORT}/${SCHRODINGER_REDIS_DB}
       - CELERY_RESULT_BACKEND=redis://${SCHRODINGER_REDIS_HOST}:${SCHRODINGER_REDIS_PORT}/${SCHRODINGER_REDIS_DB}
