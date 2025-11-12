@@ -123,8 +123,8 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      - redis
-      - minio
+      celery-worker:
+        condition: service_healthy
     environment:
       - CELERY_BROKER_URL=redis://${SCHRODINGER_REDIS_HOST}:${SCHRODINGER_REDIS_PORT}/${SCHRODINGER_REDIS_DB}
       - CELERY_RESULT_BACKEND=redis://${SCHRODINGER_REDIS_HOST}:${SCHRODINGER_REDIS_PORT}/${SCHRODINGER_REDIS_DB}
@@ -144,8 +144,16 @@ services:
       dockerfile: Dockerfile
     container_name: celery-worker
     depends_on:
-      - redis
-      # - minio
+      redis:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+      db-migrations:
+        condition: service_completed_successfully
+      minio:
+        condition: service_healthy
+      minio-setup:
+        condition: service_completed_successfully
     environment:
       - CELERY_BROKER_URL=redis://${SCHRODINGER_REDIS_HOST}:${SCHRODINGER_REDIS_PORT}/${SCHRODINGER_REDIS_DB}
       - CELERY_RESULT_BACKEND=redis://${SCHRODINGER_REDIS_HOST}:${SCHRODINGER_REDIS_PORT}/${SCHRODINGER_REDIS_DB}
