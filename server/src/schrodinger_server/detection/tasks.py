@@ -50,6 +50,38 @@ def annotate_frame(frame, box, object_name, confidence):
     return annotated_frame
 
 
+def upload_frame_to_s3(
+    s3_service: S3Service,
+    frame: np.ndarray,
+    entity_name: str,
+    timestamp: str,
+    event_name: str,
+) -> str:
+    frame_bytes = cv2.imencode(".png", frame)[1].tobytes()
+    frame_s3_key = f"{uuid.uuid4()}/{entity_name}_{event_name}_{timestamp}.png"
+    s3_service.upload(frame_bytes, frame_s3_key, mime_type="image/png")
+
+    return frame_s3_key
+
+
+def register_event(
+    entity_class_id: int,
+    entity_name: str,
+    timestamp: float,
+    annotated_frame_s3_key: str,
+    session: SyncSessionMaker,
+):
+    event = Event(
+        entity_id=entity_class_id,
+        name=entity_name,
+        timestamp=datetime.fromtimestamp(timestamp),
+        start_time=datetime.fromtimestamp(timestamp),
+        s3_key=annotated_frame_s3_key,
+    )
+    session.add(event)
+    session.commit()
+
+
 class DatabaseTask(SQLAlachemyTask, S3ServiceTask, RedisTask):
     pass
 
@@ -57,6 +89,12 @@ class DatabaseTask(SQLAlachemyTask, S3ServiceTask, RedisTask):
 @celery.task(name="detect_object", base=DatabaseTask, bind=True)
 def detect_object(self):
     entity_detector = EntityDetector()
+
+    entity_found_before = False
+    entity_found = False
+
+    latest_frame_with_entity_found: np.ndarray | None = None
+    latest_annotated_frame_with_entity_found: np.ndarray | None = None
 
     try:
         self.redis.xgroup_create(STREAM_NAME, CONSUMER_GROUP, id="0", mkstream=True)
@@ -87,63 +125,95 @@ def detect_object(self):
                         frame = frame_data["frame"]
 
                         results = entity_detector.run_inference(frame)
-                        if (
-                            entity := entity_detector.process_inference_results(
-                                results, CocoClassId.cup
-                            )
-                        ) is not None:
+                        entity = entity_detector.process_inference_results(
+                            results, CocoClassId.cup
+                        )
+                        if entity is not None:
                             annotated_frame = annotate_frame(
                                 frame, entity.box, entity.name, entity.confidence
                             )
 
-                            # cv2.imwrite(
-                            #     f"{output_dir}/{timestamp:.6f}.png", annotated_frame
-                            # )
+                            entity_found = True
+                            latest_frame_with_entity_found = frame
+                            latest_annotated_frame_with_entity_found = annotated_frame
 
-                            detection_key = f"detection:{timestamp:.6f}"
-                            detection_data = {
-                                "timestamp": timestamp,
-                                "object": entity.name,
+                            entity_key = entity.name
+                            entity_data = {
                                 "confidence": entity.confidence,
-                                "box": entity.box.xyxy[0].tolist(),
+                                "class_id": entity.class_id,
                             }
-                            self.redis.setex(
-                                detection_key, 3600, pickle.dumps(detection_data)
-                            )
+                            self.redis.set(entity_key, json.dumps(entity_data))
+                        else:
+                            entity_found = False
 
+                        if not entity_found_before and entity_found:
+                            event_name = "entered"
                             print(
-                                f"Detected {entity.name} with confidence {entity.confidence:.2f} at {datetime.fromtimestamp(timestamp)}"
+                                f"Entity {entity.name} {event_name} frame (confidence={entity.confidence:.2f}) at {datetime.fromtimestamp(timestamp)}"
+                            )
+                            entity_found_before = True
+
+                            _ = upload_frame_to_s3(
+                                self.s3_service,
+                                latest_frame_with_entity_found,
+                                entity.name,
+                                timestamp,
+                                event_name,
+                            )
+                            annotated_frame_s3_key = upload_frame_to_s3(
+                                self.s3_service,
+                                latest_annotated_frame_with_entity_found,
+                                entity.name,
+                                timestamp,
+                                event_name,
                             )
 
-                            frame_bytes = cv2.imencode(".png", frame)[1].tobytes()
-                            frame_s3_key = (
-                                f"{uuid.uuid4()}/{entity.name}_entered_{timestamp}.png"
-                            )
-                            self.s3_service.upload(
-                                frame_bytes, frame_s3_key, mime_type="image/png"
-                            )
-
-                            annotated_frame_bytes = cv2.imencode(
-                                ".png", annotated_frame
-                            )[1].tobytes()
-                            annotated_frame_s3_key = f"{uuid.uuid4()}/annotated_{entity.name}_entered_{timestamp}.png"
-                            self.s3_service.upload(
-                                annotated_frame_bytes,
-                                annotated_frame_s3_key,
-                                mime_type="image/png",
-                            )
-
-                            # Create event using sync session
                             with self.session_maker() as session:
-                                event = Event(
-                                    entity_id=entity.class_id,
-                                    name=entity.name,
-                                    timestamp=datetime.fromtimestamp(timestamp),
-                                    start_time=datetime.fromtimestamp(timestamp),
-                                    s3_key=annotated_frame_s3_key,
+                                register_event(
+                                    entity.class_id,
+                                    entity.name,
+                                    timestamp,
+                                    annotated_frame_s3_key,
+                                    session,
                                 )
-                                session.add(event)
-                                session.commit()
+                        if entity_found_before and not entity_found:
+                            entity_name = "cup"
+                            entity_str = self.redis.getdel(entity_name)
+                            if entity_str:
+                                entity_dict = json.loads(entity_str)
+
+                            entity_class_id = entity_dict["class_id"]
+                            entity_confidence = entity_dict["confidence"]
+
+                            event_name = "left"
+                            print(
+                                f"Entity {entity_name} {event_name} frame (confidence={entity_confidence:.2f}) at {datetime.fromtimestamp(timestamp)}"
+                            )
+                            entity_found_before = False
+
+                            _ = upload_frame_to_s3(
+                                self.s3_service,
+                                latest_frame_with_entity_found,
+                                entity_name,
+                                timestamp,
+                                event_name,
+                            )
+                            annotated_frame_s3_key = upload_frame_to_s3(
+                                self.s3_service,
+                                latest_annotated_frame_with_entity_found,
+                                entity_name,
+                                timestamp,
+                                event_name,
+                            )
+
+                            with self.session_maker() as session:
+                                register_event(
+                                    entity_class_id,
+                                    entity_name,
+                                    timestamp,
+                                    annotated_frame_s3_key,
+                                    session,
+                                )
 
                     except Exception as e:
                         print(f"Error processing frame: {e}")
