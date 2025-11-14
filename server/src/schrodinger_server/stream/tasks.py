@@ -4,9 +4,15 @@ import time
 from datetime import datetime
 
 import numpy as np
+import structlog
+from celery.utils.log import get_task_logger
 
 from schrodinger_server.celery import celery
+from schrodinger_server.logging import Logger
 from schrodinger_server.worker.redis import RedisTask
+
+log: Logger = structlog.wrap_logger(get_task_logger(__name__))
+
 
 STREAM_NAME = "frame_stream"
 CONSUMER_GROUP = "detection_group"
@@ -28,10 +34,14 @@ def get_stream_resolution(rtsp_url: str) -> tuple[int, int]:
     probe_result = subprocess.run(probe_cmd, capture_output=True, text=True, timeout=10)
 
     if probe_result.returncode != 0:
+        log.fatal("Could not detect resolution",
+                  returncode=probe_result.returncode,
+                  stdout=probe_result.stdout,
+                  stderr=probe_result.stderr)
         raise RuntimeError("Could not detect resolution")
 
     width, height = map(int, probe_result.stdout.strip().split(","))
-    print(f"Detected stream resolution: {width}x{height}")
+    log.info(f"Detected stream resolution", width=width, height=height)
 
     return width, height
 
@@ -68,13 +78,13 @@ def fetch_frames(self, rtsp_url: str):
                 bufsize=10**8,
             )
 
-            print(f"Started FFmpeg capture from {rtsp_url}")
+            log.info(f"Started FFmpeg capture", rtsp_url=rtsp_url)
 
             while True:
                 raw_frame = process.stdout.read(frame_size)
 
                 if len(raw_frame) != frame_size:
-                    print("FFmpeg stream ended")
+                    log.info("FFmpeg stream ended")
                     break
 
                 frame = np.frombuffer(raw_frame, dtype=np.uint8)
@@ -98,11 +108,11 @@ def fetch_frames(self, rtsp_url: str):
             process.wait(timeout=5)
 
         except subprocess.TimeoutExpired:
-            print("FFmpeg process timeout")
+            log.warning("FFmpeg process timeout")
             if "process" in locals():
                 process.kill()
         except Exception as e:
-            print(f"Error in FFmpeg capture: {e}")
+            log.error("Error in FFmpeg capture", error=e)
             if "process" in locals():
                 process.kill()
             time.sleep(2)
