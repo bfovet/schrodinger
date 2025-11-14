@@ -1,5 +1,6 @@
 from typing import AsyncIterator, TypedDict
 
+import structlog
 from celery.result import AsyncResult
 from fastapi import FastAPI
 
@@ -11,11 +12,15 @@ from schrodinger_server.kit.db.postgres import (AsyncEngine, AsyncSessionMaker,
                                                 Engine, SyncSessionMaker,
                                                 create_async_sessionmaker,
                                                 create_sync_sessionmaker)
+from schrodinger_server.logging import Logger
+from schrodinger_server.logging import configure as configure_logging
 from schrodinger_server.postgres import (AsyncSessionMiddleware,
                                          create_async_engine,
                                          create_async_read_engine,
                                          create_sync_engine)
 from schrodinger_server.stream.tasks import fetch_frames
+
+log: Logger = structlog.get_logger()
 
 
 class State(TypedDict):
@@ -28,7 +33,7 @@ class State(TypedDict):
 
 
 async def lifespan(app: FastAPI) -> AsyncIterator[State]:
-    print("Starting Schrodinger API")
+    log.info("Starting Schrodinger API")
 
     async_engine = async_read_engine = create_async_engine("app")
     async_sessionmaker = async_read_sessionmaker = create_async_sessionmaker(
@@ -44,14 +49,14 @@ async def lifespan(app: FastAPI) -> AsyncIterator[State]:
 
     rtsp_url = f"rtsp://{settings.RTSP_USERNAME}:{settings.RTSP_PASSWORD}@{settings.RTSP_HOST_IP_ADDRESS}:554/{settings.RTSP_STREAM_NAME}"
 
-    print(f"Stream URL: {rtsp_url}")
+    log.debug("Stream URL", rtsp_url=rtsp_url)
 
     task_ids = [fetch_frames.delay(rtsp_url)]
-    print(f"Started fetch_frames task: {task_ids[-1].id}")
+    log.info("Started fetch_frames task", id=task_ids[-1].id)
     task_ids.append(detect_object.delay())
-    print(f"Started detect_object task: {task_ids[-1].id}")
+    log.info("Started detect_object task", id=task_ids[-1].id)
 
-    print("Schrodinger API started")
+    log.info("Schrodinger API started")
 
     yield {
         "async_engine": async_engine,
@@ -65,7 +70,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[State]:
     for task_id in task_ids:
         AsyncResult(task_id).revoke(terminate=True)
 
-    print("Schrodinger API stopped")
+    log.info("Schrodinger API stopped")
 
 
 def create_app() -> FastAPI:
@@ -81,5 +86,7 @@ def create_app() -> FastAPI:
 
     return app
 
+
+configure_logging()
 
 app = create_app()

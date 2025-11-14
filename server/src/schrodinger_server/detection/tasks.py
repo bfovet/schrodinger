@@ -7,18 +7,20 @@ from datetime import datetime
 import cv2
 import numpy as np
 import redis
+import structlog
 from celery.utils.log import get_task_logger
 
 from schrodinger_server.celery import celery
 from schrodinger_server.detection.detection import CocoClassId, EntityDetector
 from schrodinger_server.integrations.aws.s3.service import S3Service
 from schrodinger_server.kit.db.postgres import SyncSessionMaker
+from schrodinger_server.logging import Logger
 from schrodinger_server.models import Event
 from schrodinger_server.worker.redis import RedisTask
 from schrodinger_server.worker.s3 import S3ServiceTask
 from schrodinger_server.worker.sqlalchemy import SQLAlachemyTask
 
-logger = get_task_logger("test")
+log: Logger = structlog.wrap_logger(get_task_logger(__name__))
 
 
 STREAM_NAME = "frame_stream"
@@ -152,9 +154,11 @@ def detect_object(self):
 
                         if not entity_found_before and entity_found:
                             event_name = "entered"
-                            print(
-                                f"Entity {entity.name} {event_name} frame (confidence={entity.confidence:.2f}) at {datetime.fromtimestamp(timestamp)}"
-                            )
+                            log.info(f"Entity {event_name} frame",
+                                     entity_name=entity.name,
+                                     event_name=event_name,
+                                     confidence=f"{entity.confidence:.2f}",
+                                     datetime=f"{datetime.fromtimestamp(timestamp)}")
                             entity_found_before = True
 
                             _ = upload_frame_to_s3(
@@ -190,9 +194,10 @@ def detect_object(self):
                             entity_confidence = entity_dict["confidence"]
 
                             event_name = "left"
-                            print(
-                                f"Entity {entity_name} {event_name} frame (confidence={entity_confidence:.2f}) at {datetime.fromtimestamp(timestamp)}"
-                            )
+                            log.info(f"Entity {event_name} frame",
+                                     entity_name=entity_name,
+                                     confidence=f"{entity_confidence:.2f}",
+                                     datetime=f"{datetime.fromtimestamp(timestamp)}")
                             entity_found_before = False
 
                             _ = upload_frame_to_s3(
@@ -220,10 +225,10 @@ def detect_object(self):
                                 )
 
                     except Exception as e:
-                        print(f"Error processing frame: {e}")
+                        log.error("Error processing frame", error=e)
                     finally:
                         self.redis.xack(STREAM_NAME, CONSUMER_GROUP, message_id)
 
         except Exception as e:
-            print(f"Error reading from stream: {e}")
+            log.error("Error reading from stream", error=e)
             time.sleep(1)
