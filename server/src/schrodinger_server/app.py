@@ -49,12 +49,12 @@ async def lifespan(app: FastAPI) -> AsyncIterator[State]:
 
     rtsp_url = f"rtsp://{settings.RTSP_USERNAME}:{settings.RTSP_PASSWORD}@{settings.RTSP_HOST_IP_ADDRESS}:554/{settings.RTSP_STREAM_NAME}"
 
-    log.debug(f"Stream URL: {rtsp_url}")
+    log.debug("Stream URL", rtsp_url=rtsp_url)
 
     task_ids = [fetch_frames.delay(rtsp_url)]
-    log.info(f"Started fetch_frames task: {task_ids[-1].id}")
+    log.info("Started fetch_frames task", id=task_ids[-1].id)
     task_ids.append(detect_object.delay())
-    log.info(f"Started detect_object task: {task_ids[-1].id}")
+    log.info("Started detect_object task", id=task_ids[-1].id)
 
     log.info("Schrodinger API started")
 
