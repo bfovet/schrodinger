@@ -18,7 +18,7 @@ from schrodinger_server.logging import Logger
 from schrodinger_server.models import Event
 from schrodinger_server.worker.redis import RedisTask
 from schrodinger_server.worker.s3 import S3ServiceTask
-from schrodinger_server.worker.sqlalchemy import SQLAlachemyTask
+from schrodinger_server.worker.sqlalchemy import SQLAlchemyTask
 
 log: Logger = structlog.wrap_logger(get_task_logger(__name__))
 
@@ -91,7 +91,7 @@ def register_event(
     session.commit()
 
 
-class DatabaseTask(SQLAlachemyTask, S3ServiceTask, RedisTask):
+class DatabaseTask(SQLAlchemyTask, S3ServiceTask, RedisTask):
     pass
 
 

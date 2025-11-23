@@ -15,7 +15,7 @@ from schrodinger_server.postgres import create_sync_engine
 logger = get_task_logger(__name__)
 
 
-class SQLAlachemyTask(Task):
+class SQLAlchemyTask(Task):
     _session_maker: SyncSessionMaker | None = None
 
     @property
