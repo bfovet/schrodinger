@@ -12,18 +12,10 @@ class EventService:
         self,
         session: AsyncSession,
         *,
-        start_timestamp: datetime | None = None,
-        end_timestamp: datetime | None = None,
         name: Sequence[str] | None = None,
     ) -> tuple[Sequence[Event], int]:
         repository = EventRepository.from_session(session)
         statement = repository.get_base_statement()
-
-        if start_timestamp is not None:
-            statement = statement.where(Event.timestamp > start_timestamp)
-
-        if end_timestamp is not None:
-            statement = statement.where(Event.timestamp < end_timestamp)
 
         if name is not None:
             statement = statement.where(Event.name.in_(name))

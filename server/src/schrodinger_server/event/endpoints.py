@@ -19,12 +19,6 @@ EventNotFound = {"description": "Event not found.", "model": ResourceNotFound.sc
 
 @router.get("/", summary="List Events", response_model=list[EventSchema])
 async def list(
-    start_timestamp: AwareDatetime | None = Query(
-        None, description="Filter events after this timestamp."
-    ),
-    end_timestamp: AwareDatetime | None = Query(
-        None, description="Filter events before this timestamp."
-    ),
     name: str | None = Query(
         None, title="Name Filter", description="Filter by event name."
     ),
@@ -33,7 +27,7 @@ async def list(
     """List events."""
 
     results, count = await event_service.list(
-        session, start_timestamp=start_timestamp, end_timestamp=end_timestamp, name=name
+        session, name=name
     )
 
     return results
