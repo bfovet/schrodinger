@@ -56,6 +56,9 @@ class Settings(BaseSettings):
     CELERY_BROKER_URL: str = f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"
     CELERY_BACKEND_URL: str = f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"
 
+    # Logfire
+    LOGFIRE_TOKEN: str | None = None
+
     # Downloadable files
     S3_FILES_BUCKET_NAME: str = "schrodinger-s3"
     S3_FILES_PUBLIC_BUCKET_NAME: str = "schrodinger-s3-public"
