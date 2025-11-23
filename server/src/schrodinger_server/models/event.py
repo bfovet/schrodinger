@@ -18,6 +18,7 @@ class Event(Base):
     )
     entity_id: Mapped[int] = mapped_column(Integer, nullable=True, index=True)
     name: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
+    event_type: Mapped[str] = mapped_column(String(128), nullable=False)
     timestamp: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True), nullable=False, default=utc_now, index=True
     )
