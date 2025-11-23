@@ -79,6 +79,10 @@ async def lifespan(app: FastAPI) -> AsyncIterator[State]:
         AsyncResult(task_id).revoke(terminate=True)
 
     await redis.close(True)
+    await async_engine.dispose()
+    if async_read_engine is not async_engine:
+        await async_read_engine.dispose()
+    sync_engine.dispose()
 
     log.info("Schrodinger API stopped")
 
