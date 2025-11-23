@@ -83,7 +83,6 @@ def register_event(
         name=entity_name,
         event_type=event_type,
         timestamp=datetime.fromtimestamp(timestamp),
-        start_time=datetime.fromtimestamp(timestamp),
         s3_key=annotated_frame_s3_key,
     )
     session.add(event)
