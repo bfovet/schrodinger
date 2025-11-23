@@ -18,6 +18,7 @@ from schrodinger_server.postgres import (AsyncSessionMiddleware,
                                          create_async_engine,
                                          create_async_read_engine,
                                          create_sync_engine)
+from schrodinger_server.redis import Redis, create_redis
 from schrodinger_server.stream.tasks import fetch_frames
 
 log: Logger = structlog.get_logger()
@@ -30,6 +31,8 @@ class State(TypedDict):
     async_read_sessionmaker: AsyncSessionMaker
     sync_engine: Engine
     sync_sessionmaker: SyncSessionMaker
+
+    redis: Redis
 
 
 async def lifespan(app: FastAPI) -> AsyncIterator[State]:
@@ -46,6 +49,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[State]:
 
     sync_engine = create_sync_engine("app")
     sync_sessionmaker = create_sync_sessionmaker(sync_engine)
+
+    redis = create_redis("app")
 
     rtsp_url = f"rtsp://{settings.RTSP_USERNAME}:{settings.RTSP_PASSWORD}@{settings.RTSP_HOST_IP_ADDRESS}:554/{settings.RTSP_STREAM_NAME}"
 
@@ -65,10 +70,13 @@ async def lifespan(app: FastAPI) -> AsyncIterator[State]:
         "async_read_sessionmaker": async_read_sessionmaker,
         "sync_engine": sync_engine,
         "sync_sessionmaker": sync_sessionmaker,
+        "redis": redis,
     }
 
     for task_id in task_ids:
         AsyncResult(task_id).revoke(terminate=True)
+
+    await redis.close(True)
 
     log.info("Schrodinger API stopped")
 
