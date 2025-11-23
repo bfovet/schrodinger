@@ -80,7 +80,7 @@ def fetch_frames(self, rtsp_url: str):
                 bufsize=10**8,
             )
 
-            log.info("Started FFmpeg capture", rtsp_url=rtsp_url)
+            log.info("Started FFmpeg capture")
 
             while True:
                 raw_frame = process.stdout.read(frame_size)

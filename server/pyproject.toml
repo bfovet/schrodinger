@@ -17,6 +17,7 @@ dependencies = [
     "fastapi[standard]>=0.116.2",
     "httptools>=0.6.4",
     "httpx>=0.28.1",
+    "logfire[celery,fastapi,httpx,redis,sqlalchemy,system-metrics]>=4.15.1",
     "opencv-python>=4.12.0.88",
     "psycopg2-binary>=2.9.10",
     "pydantic-settings>=2.10.1",

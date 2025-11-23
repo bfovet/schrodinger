@@ -18,6 +18,13 @@ from schrodinger_server.kit.db.postgres import (
     create_async_sessionmaker,
     create_sync_sessionmaker,
 )
+from schrodinger_server.logfire import (
+    configure_logfire,
+    instrument_fastapi,
+    instrument_httpx,
+    instrument_sqlalchemy,
+    instrument_system_metrics,
+)
 from schrodinger_server.logging import Logger
 from schrodinger_server.logging import configure as configure_logging
 from schrodinger_server.postgres import (
@@ -51,19 +58,22 @@ async def lifespan(app: FastAPI) -> AsyncIterator[State]:
     async_sessionmaker = async_read_sessionmaker = create_async_sessionmaker(
         async_engine
     )
+    instrument_sqlalchemy(async_engine.sync_engine)
 
     if settings.is_read_replica_configured():
         async_read_engine = create_async_read_engine("app")
         async_read_sessionmaker = create_async_sessionmaker(async_read_engine)
+        instrument_sqlalchemy(async_read_engine.sync_engine)
 
     sync_engine = create_sync_engine("app")
     sync_sessionmaker = create_sync_sessionmaker(sync_engine)
+    instrument_sqlalchemy(sync_engine)
 
     redis = create_redis("app")
 
     rtsp_url = f"rtsp://{settings.RTSP_USERNAME}:{settings.RTSP_PASSWORD}@{settings.RTSP_HOST_IP_ADDRESS}:554/{settings.RTSP_STREAM_NAME}"
 
-    log.debug("Stream URL", rtsp_url=rtsp_url)
+    log.debug("Stream used", rtsp_stream_name=settings.RTSP_STREAM_NAME)
 
     task_ids = [fetch_frames.delay(rtsp_url)]
     log.info("Started fetch_frames task", id=task_ids[-1].id)
@@ -108,6 +118,10 @@ def create_app() -> FastAPI:
     return app
 
 
-configure_logging()
+configure_logfire("server")
+configure_logging(logfire=True)
 
 app = create_app()
+instrument_fastapi(app)
+instrument_httpx()
+instrument_system_metrics()
