@@ -17,6 +17,7 @@ class EntityDetectedEvent(BaseEvent):
 
     entity_id: CocoClassId = Field(description="The ID of the entity.")
     name: str = Field(description="The name of the entity.")
+    event_type: str = Field(description="The type of the event.")
     timestamp: datetime = Field(description="The timestamp of the event.")
     start_time: datetime = Field(description="The start time of the event.")
     end_time: datetime = Field(description="The end time of the event.")

@@ -73,6 +73,7 @@ def upload_frame_to_s3(
 def register_event(
     entity_class_id: int,
     entity_name: str,
+    event_type: str,
     timestamp: float,
     annotated_frame_s3_key: str,
     session: SyncSessionMaker,
@@ -80,6 +81,7 @@ def register_event(
     event = Event(
         entity_id=entity_class_id,
         name=entity_name,
+        event_type=event_type,
         timestamp=datetime.fromtimestamp(timestamp),
         start_time=datetime.fromtimestamp(timestamp),
         s3_key=annotated_frame_s3_key,
@@ -180,6 +182,7 @@ def detect_object(self):
                                 register_event(
                                     entity.class_id,
                                     entity.name,
+                                    event_name,
                                     timestamp,
                                     annotated_frame_s3_key,
                                     session,
@@ -219,6 +222,7 @@ def detect_object(self):
                                 register_event(
                                     entity_class_id,
                                     entity_name,
+                                    event_name,
                                     timestamp,
                                     annotated_frame_s3_key,
                                     session,
