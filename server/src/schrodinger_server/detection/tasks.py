@@ -6,6 +6,7 @@ from datetime import datetime
 
 import cv2
 import numpy as np
+from sqlalchemy.orm import Session
 import redis
 import structlog
 from celery.utils.log import get_task_logger
@@ -13,7 +14,6 @@ from celery.utils.log import get_task_logger
 from schrodinger_server.celery import celery
 from schrodinger_server.detection.detection import CocoClassId, EntityDetector
 from schrodinger_server.integrations.aws.s3.service import S3Service
-from schrodinger_server.kit.db.postgres import SyncSessionMaker
 from schrodinger_server.logging import Logger
 from schrodinger_server.models import Event
 from schrodinger_server.worker.redis import RedisTask
@@ -76,7 +76,7 @@ def register_event(
     event_type: str,
     timestamp: float,
     annotated_frame_s3_key: str,
-    session: SyncSessionMaker,
+    session: Session,
 ):
     event = Event(
         entity_id=entity_class_id,
