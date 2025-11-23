@@ -1,10 +1,14 @@
 import os
-from typing import Literal, Any
+from typing import Literal
 
+import httpx
 import logfire
 from fastapi import FastAPI
+from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
+from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
 
 from schrodinger_server.config import settings
+from schrodinger_server.kit.db.postgres import Engine
 
 
 def configure_logfire(service_name: Literal["server", "worker"]) -> None:
@@ -15,8 +19,19 @@ def configure_logfire(service_name: Literal["server", "worker"]) -> None:
                       console=False,)
 
 
+def instrument_httpx(client: httpx.AsyncClient | httpx.Client | None = None) -> None:
+    if client:
+        HTTPXClientInstrumentor().instrument_client(client)
+    else:
+        HTTPXClientInstrumentor().instrument()
+
+
 def instrument_fastapi(app: FastAPI) -> None:
     logfire.instrument_fastapi(app, capture_headers=True)
 
 
-__all__ = ["configure_logfire", "instrument_fastapi"]
+def instrument_sqlalchemy(engine: Engine) -> None:
+    SQLAlchemyInstrumentor().instrument(engine=engine)
+
+
+__all__ = ["configure_logfire", "instrument_fastapi", "instrument_sqlalchemy"]
