@@ -18,7 +18,7 @@ from schrodinger_server.kit.db.postgres import (
     create_async_sessionmaker,
     create_sync_sessionmaker,
 )
-from schrodinger_server.logfire import configure_logfire, instrument_fastapi, instrument_httpx, instrument_sqlalchemy
+from schrodinger_server.logfire import configure_logfire, instrument_fastapi, instrument_httpx, instrument_sqlalchemy, instrument_system_metrics
 from schrodinger_server.logging import Logger
 from schrodinger_server.logging import configure as configure_logging
 from schrodinger_server.postgres import (
@@ -118,3 +118,4 @@ configure_logging(logfire=True)
 app = create_app()
 instrument_fastapi(app)
 instrument_httpx()
+instrument_system_metrics()

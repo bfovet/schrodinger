@@ -34,4 +34,8 @@ def instrument_sqlalchemy(engine: Engine) -> None:
     SQLAlchemyInstrumentor().instrument(engine=engine)
 
 
-__all__ = ["configure_logfire", "instrument_fastapi", "instrument_sqlalchemy"]
+def instrument_system_metrics() -> None:
+    logfire.instrument_system_metrics()
+
+
+__all__ = ["configure_logfire", "instrument_fastapi", "instrument_sqlalchemy", "instrument_system_metrics"]
