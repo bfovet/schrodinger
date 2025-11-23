@@ -22,11 +22,5 @@ class Event(Base):
     timestamp: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True), nullable=False, default=utc_now, index=True
     )
-    start_time: Mapped[datetime] = mapped_column(
-        TIMESTAMP(timezone=True), nullable=False, default=utc_now, index=True
-    )
-    end_time: Mapped[datetime] = mapped_column(
-        TIMESTAMP(timezone=True), nullable=True, default=utc_now, index=True
-    )
     raw_frame_s3_key: Mapped[str] = mapped_column(String(500), nullable=True)
     annotated_frame_s3_key: Mapped[str] = mapped_column(String(500), nullable=True)
