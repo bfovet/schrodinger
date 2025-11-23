@@ -95,7 +95,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[State]:
 
 
 def create_app() -> FastAPI:
-    app = FastAPI(lifespan=lifespan)  # pyright: ignore[reportArgumentType]
+    app = FastAPI(lifespan=lifespan)
 
     if not settings.is_testing():
         app.add_middleware(AsyncSessionMiddleware)
