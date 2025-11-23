@@ -12,11 +12,13 @@ from schrodinger_server.kit.db.postgres import Engine
 
 
 def configure_logfire(service_name: Literal["server", "worker"]) -> None:
-    logfire.configure(send_to_logfire="if-token-present",
-                      token=settings.LOGFIRE_TOKEN,
-                      service_name=service_name,
-                      service_version=os.environ.get("RELEASE_VERSION", "development"),
-                      console=False,)
+    logfire.configure(
+        send_to_logfire="if-token-present",
+        token=settings.LOGFIRE_TOKEN,
+        service_name=service_name,
+        service_version=os.environ.get("RELEASE_VERSION", "development"),
+        console=False,
+    )
 
 
 def instrument_httpx(client: httpx.AsyncClient | httpx.Client | None = None) -> None:
@@ -38,4 +40,9 @@ def instrument_system_metrics() -> None:
     logfire.instrument_system_metrics()
 
 
-__all__ = ["configure_logfire", "instrument_fastapi", "instrument_sqlalchemy", "instrument_system_metrics"]
+__all__ = [
+    "configure_logfire",
+    "instrument_fastapi",
+    "instrument_sqlalchemy",
+    "instrument_system_metrics",
+]

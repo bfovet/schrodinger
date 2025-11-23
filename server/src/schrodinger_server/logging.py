@@ -87,12 +87,7 @@ class Logging[RendererType]:
                             "handlers": [],
                             "propagate": True,
                         }
-                        for logger in [
-                            "uvicorn",
-                            "sqlalchemy",
-                            "celery",
-                            "logfire"
-                        ]
+                        for logger in ["uvicorn", "sqlalchemy", "celery", "logfire"]
                     },
                 },
             }
