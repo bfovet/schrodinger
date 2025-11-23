@@ -110,7 +110,7 @@ def create_app() -> FastAPI:
 
 
 configure_logfire("server")
-configure_logging()
+configure_logging(logfire=True)
 
 app = create_app()
 instrument_fastapi(app)

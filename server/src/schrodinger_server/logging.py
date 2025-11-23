@@ -2,6 +2,7 @@ import logging.config
 from typing import Any
 
 import structlog.stdlib
+from logfire.integrations.structlog import LogfireProcessor
 
 from schrodinger_server.config import settings
 
@@ -23,7 +24,7 @@ class Logging[RendererType]:
         return settings.LOG_LEVEL
 
     @classmethod
-    def get_processors(cls) -> list[Any]:
+    def get_processors(cls, *, logfire: bool) -> list[Any]:
         return [
             structlog.contextvars.merge_contextvars,
             structlog.stdlib.add_log_level,
@@ -32,6 +33,7 @@ class Logging[RendererType]:
             cls.timestamper,
             structlog.processors.UnicodeDecoder(),
             structlog.processors.StackInfoRenderer(),
+            *([LogfireProcessor()] if logfire else []),
             structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
         ]
 
@@ -40,14 +42,14 @@ class Logging[RendererType]:
         raise NotImplementedError()
 
     @classmethod
-    def configure_stdlib(cls) -> None:
+    def configure_stdlib(cls, *, logfire: bool) -> None:
         level = cls.get_level()
         logging.config.dictConfig(
             {
                 "version": 1,
                 "disable_existing_loggers": True,
                 "formatters": {
-                    "polar": {
+                    "schrodinger": {
                         "()": structlog.stdlib.ProcessorFormatter,
                         "processors": [
                             structlog.stdlib.ProcessorFormatter.remove_processors_meta,
@@ -62,6 +64,7 @@ class Logging[RendererType]:
                             cls.timestamper,
                             structlog.processors.UnicodeDecoder(),
                             structlog.processors.StackInfoRenderer(),
+                            *([LogfireProcessor()] if logfire else []),
                         ],
                     },
                 },
@@ -69,7 +72,7 @@ class Logging[RendererType]:
                     "default": {
                         "level": level,
                         "class": "logging.StreamHandler",
-                        "formatter": "polar",
+                        "formatter": "schrodinger",
                     },
                 },
                 "loggers": {
@@ -87,6 +90,8 @@ class Logging[RendererType]:
                         for logger in [
                             "uvicorn",
                             "sqlalchemy",
+                            "celery",
+                            "logfire"
                         ]
                     },
                 },
@@ -94,18 +99,18 @@ class Logging[RendererType]:
         )
 
     @classmethod
-    def configure_structlog(cls) -> None:
+    def configure_structlog(cls, *, logfire: bool = False) -> None:
         structlog.configure_once(
-            processors=cls.get_processors(),
+            processors=cls.get_processors(logfire=logfire),
             logger_factory=structlog.stdlib.LoggerFactory(),
             wrapper_class=structlog.stdlib.BoundLogger,
             cache_logger_on_first_use=True,
         )
 
     @classmethod
-    def configure(cls) -> None:
-        cls.configure_stdlib()
-        cls.configure_structlog()
+    def configure(cls, *, logfire: bool = False) -> None:
+        cls.configure_stdlib(logfire=logfire)
+        cls.configure_structlog(logfire=logfire)
 
 
 class Development(Logging[structlog.dev.ConsoleRenderer]):
@@ -120,10 +125,10 @@ class Production(Logging[structlog.processors.JSONRenderer]):
         return structlog.processors.JSONRenderer()
 
 
-def configure() -> None:
+def configure(*, logfire: bool = False) -> None:
     if settings.is_testing():
-        Development.configure()
+        Development.configure(logfire=False)
     elif settings.is_development():
-        Development.configure()
+        Development.configure(logfire=logfire)
     else:
-        Production.configure()
+        Production.configure(logfire=logfire)
