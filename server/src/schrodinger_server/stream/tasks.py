@@ -34,14 +34,16 @@ def get_stream_resolution(rtsp_url: str) -> tuple[int, int]:
     probe_result = subprocess.run(probe_cmd, capture_output=True, text=True, timeout=10)
 
     if probe_result.returncode != 0:
-        log.fatal("Could not detect resolution",
-                  returncode=probe_result.returncode,
-                  stdout=probe_result.stdout,
-                  stderr=probe_result.stderr)
+        log.fatal(
+            "Could not detect resolution",
+            returncode=probe_result.returncode,
+            stdout=probe_result.stdout,
+            stderr=probe_result.stderr,
+        )
         raise RuntimeError("Could not detect resolution")
 
     width, height = map(int, probe_result.stdout.strip().split(","))
-    log.info(f"Detected stream resolution", width=width, height=height)
+    log.info("Detected stream resolution", width=width, height=height)
 
     return width, height
 
@@ -78,7 +80,7 @@ def fetch_frames(self, rtsp_url: str):
                 bufsize=10**8,
             )
 
-            log.info(f"Started FFmpeg capture", rtsp_url=rtsp_url)
+            log.info("Started FFmpeg capture", rtsp_url=rtsp_url)
 
             while True:
                 raw_frame = process.stdout.read(frame_size)

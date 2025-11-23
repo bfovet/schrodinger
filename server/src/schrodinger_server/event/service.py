@@ -1,6 +1,5 @@
 import uuid
 from collections.abc import Sequence
-from datetime import datetime
 
 from schrodinger_server.event.repository import EventRepository
 from schrodinger_server.kit.db.postgres import AsyncSession

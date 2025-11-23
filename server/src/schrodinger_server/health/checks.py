@@ -13,14 +13,14 @@ async def check_postgres(session: AsyncSession) -> bool:
     try:
         await session.execute(select(1))
         return True
-    except SQLAlchemyError as e:
+    except SQLAlchemyError:
         return False
 
 
 async def ping_redis(redis: Redis) -> bool:
     try:
         return await redis.ping()
-    except Exception as e:
+    except Exception:
         return False
 
 

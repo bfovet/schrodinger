@@ -1,7 +1,6 @@
 from collections.abc import Sequence
 
 from fastapi import APIRouter, Depends, Query
-from pydantic import AwareDatetime
 
 from schrodinger_server.event.schemas import Event as EventSchema
 from schrodinger_server.event.schemas import EventID
@@ -26,9 +25,7 @@ async def list(
 ) -> Sequence[EventSchema]:
     """List events."""
 
-    results, count = await event_service.list(
-        session, name=name
-    )
+    results, count = await event_service.list(session, name=name)
 
     return results
 

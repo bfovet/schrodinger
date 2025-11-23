@@ -157,11 +157,13 @@ def detect_object(self):
 
                         if not entity_found_before and entity_found:
                             event_name = "entered"
-                            log.info(f"Entity {event_name} frame",
-                                     entity_name=entity.name,
-                                     event_name=event_name,
-                                     confidence=f"{entity.confidence:.2f}",
-                                     datetime=f"{datetime.fromtimestamp(timestamp)}")
+                            log.info(
+                                f"Entity {event_name} frame",
+                                entity_name=entity.name,
+                                event_name=event_name,
+                                confidence=f"{entity.confidence:.2f}",
+                                datetime=f"{datetime.fromtimestamp(timestamp)}",
+                            )
                             entity_found_before = True
 
                             raw_frame_s3_key = upload_frame_to_s3(
@@ -199,10 +201,12 @@ def detect_object(self):
                             entity_confidence = entity_dict["confidence"]
 
                             event_name = "left"
-                            log.info(f"Entity {event_name} frame",
-                                     entity_name=entity_name,
-                                     confidence=f"{entity_confidence:.2f}",
-                                     datetime=f"{datetime.fromtimestamp(timestamp)}")
+                            log.info(
+                                f"Entity {event_name} frame",
+                                entity_name=entity_name,
+                                confidence=f"{entity_confidence:.2f}",
+                                datetime=f"{datetime.fromtimestamp(timestamp)}",
+                            )
                             entity_found_before = False
 
                             raw_frame_s3_key = upload_frame_to_s3(

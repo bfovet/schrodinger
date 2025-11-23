@@ -26,7 +26,7 @@ def create_redis(process_name: ProcessName) -> Redis:
         decode_responses=True,
         retry_on_error=REDIS_RETRY_ON_ERROR,
         retry=REDIS_RETRY,
-        client_name=f"{settings.ENV.value}.{process_name}"
+        client_name=f"{settings.ENV.value}.{process_name}",
     )
 
 

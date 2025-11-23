@@ -10,16 +10,22 @@ from schrodinger_server.api import router
 from schrodinger_server.config import settings
 from schrodinger_server.detection.tasks import detect_object
 from schrodinger_server.health.endpoints import router as health_router
-from schrodinger_server.kit.db.postgres import (AsyncEngine, AsyncSessionMaker,
-                                                Engine, SyncSessionMaker,
-                                                create_async_sessionmaker,
-                                                create_sync_sessionmaker)
+from schrodinger_server.kit.db.postgres import (
+    AsyncEngine,
+    AsyncSessionMaker,
+    Engine,
+    SyncSessionMaker,
+    create_async_sessionmaker,
+    create_sync_sessionmaker,
+)
 from schrodinger_server.logging import Logger
 from schrodinger_server.logging import configure as configure_logging
-from schrodinger_server.postgres import (AsyncSessionMiddleware,
-                                         create_async_engine,
-                                         create_async_read_engine,
-                                         create_sync_engine)
+from schrodinger_server.postgres import (
+    AsyncSessionMiddleware,
+    create_async_engine,
+    create_async_read_engine,
+    create_sync_engine,
+)
 from schrodinger_server.redis import Redis, create_redis
 from schrodinger_server.stream.tasks import fetch_frames
 

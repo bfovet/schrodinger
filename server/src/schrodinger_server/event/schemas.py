@@ -20,7 +20,9 @@ class EntityDetectedEvent(BaseEvent):
     event_type: str = Field(description="The type of the event.")
     timestamp: datetime = Field(description="The timestamp of the event.")
     raw_frame_s3_key: str = Field(description="S3 link to the raw event frame")
-    annotated_frame_s3_key: str = Field(description="S3 link to the annotated event frame")
+    annotated_frame_s3_key: str = Field(
+        description="S3 link to the annotated event frame"
+    )
 
 
 type Event = EntityDetectedEvent
