@@ -28,4 +28,5 @@ class Event(Base):
     end_time: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True), nullable=True, default=utc_now, index=True
     )
-    s3_key: Mapped[str] = mapped_column(String(500), nullable=True)
+    raw_frame_s3_key: Mapped[str] = mapped_column(String(500), nullable=True)
+    annotated_frame_s3_key: Mapped[str] = mapped_column(String(500), nullable=True)

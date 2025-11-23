@@ -75,6 +75,7 @@ def register_event(
     entity_name: str,
     event_type: str,
     timestamp: float,
+    raw_frame_s3_key: str,
     annotated_frame_s3_key: str,
     session: Session,
 ):
@@ -83,7 +84,8 @@ def register_event(
         name=entity_name,
         event_type=event_type,
         timestamp=datetime.fromtimestamp(timestamp),
-        s3_key=annotated_frame_s3_key,
+        raw_frame_s3_key=raw_frame_s3_key,
+        annotated_frame_s3_key=annotated_frame_s3_key,
     )
     session.add(event)
     session.commit()
@@ -100,7 +102,7 @@ def detect_object(self):
     entity_found_before = False
     entity_found = False
 
-    latest_frame_with_entity_found: np.ndarray | None = None
+    latest_raw_frame_with_entity_found: np.ndarray | None = None
     latest_annotated_frame_with_entity_found: np.ndarray | None = None
 
     try:
@@ -141,7 +143,7 @@ def detect_object(self):
                             )
 
                             entity_found = True
-                            latest_frame_with_entity_found = frame
+                            latest_raw_frame_with_entity_found = frame
                             latest_annotated_frame_with_entity_found = annotated_frame
 
                             entity_key = entity.name
@@ -162,9 +164,9 @@ def detect_object(self):
                                      datetime=f"{datetime.fromtimestamp(timestamp)}")
                             entity_found_before = True
 
-                            _ = upload_frame_to_s3(
+                            raw_frame_s3_key = upload_frame_to_s3(
                                 self.s3_service,
-                                latest_frame_with_entity_found,
+                                latest_raw_frame_with_entity_found,
                                 entity.name,
                                 timestamp,
                                 event_name,
@@ -183,6 +185,7 @@ def detect_object(self):
                                     entity.name,
                                     event_name,
                                     timestamp,
+                                    raw_frame_s3_key,
                                     annotated_frame_s3_key,
                                     session,
                                 )
@@ -202,9 +205,9 @@ def detect_object(self):
                                      datetime=f"{datetime.fromtimestamp(timestamp)}")
                             entity_found_before = False
 
-                            _ = upload_frame_to_s3(
+                            raw_frame_s3_key = upload_frame_to_s3(
                                 self.s3_service,
-                                latest_frame_with_entity_found,
+                                latest_raw_frame_with_entity_found,
                                 entity_name,
                                 timestamp,
                                 event_name,
@@ -223,6 +226,7 @@ def detect_object(self):
                                     entity_name,
                                     event_name,
                                     timestamp,
+                                    raw_frame_s3_key,
                                     annotated_frame_s3_key,
                                     session,
                                 )
