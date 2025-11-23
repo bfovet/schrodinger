@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from typing import AsyncIterator, TypedDict
 
 import structlog
@@ -35,6 +36,7 @@ class State(TypedDict):
     redis: Redis
 
 
+@asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[State]:
     log.info("Starting Schrodinger API")
 
