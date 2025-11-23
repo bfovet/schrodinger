@@ -2,15 +2,13 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import TIMESTAMP, UUID, Integer, String
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Mapped, mapped_column
 
+from schrodinger_server.kit.db.models import Model
 from schrodinger_server.kit.utils import utc_now
 
-Base = declarative_base()
 
-
-class Event(Base):
+class Event(Model):
     __tablename__ = "events"
 
     id: Mapped[UUID] = mapped_column(
