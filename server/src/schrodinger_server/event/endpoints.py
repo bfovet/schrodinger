@@ -30,7 +30,7 @@ async def list(
     return results
 
 
-@router.post(
+@router.get(
     "/{id}",
     summary="Get Event",
     response_model=EventSchema,
