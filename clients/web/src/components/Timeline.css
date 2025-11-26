@@ -1,0 +1,56 @@
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.timeline-loading,
+.timeline-error {
+  text-align: center;
+  padding: 2rem;
+  font-size: 1.2rem;
+  grid-column: 1 / -1;
+}
+
+.timeline-error {
+  color: #e74c3c;
+}
+
+.timeline-event {
+  display: flex;
+  flex-direction: column;
+  background: #f8f9fa;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+  overflow: hidden;
+}
+
+.timeline-event:hover {
+  background: #e9ecef;
+  transform: translateY(-4px);
+}
+
+.timeline-thumbnail {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+}
+
+.timeline-info {
+  padding: 0.75rem;
+}
+
+.timeline-name {
+  font-weight: 500;
+  font-size: 0.95rem;
+  margin-bottom: 0.25rem;
+}
+
+.timeline-time {
+  font-size: 0.8rem;
+  color: #666;
+}
