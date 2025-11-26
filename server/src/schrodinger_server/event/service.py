@@ -19,6 +19,8 @@ class EventService:
         if name is not None:
             statement = statement.where(Event.name.in_(name))
 
+        statement = statement.order_by(Event.timestamp.desc())
+
         # return await repository.paginate(statement, limit=pagination.limit, page=pagination.page)
         return await repository.get_all(statement), 0
 
