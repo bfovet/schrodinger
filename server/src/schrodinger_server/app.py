@@ -10,6 +10,7 @@ from schrodinger_server.api import router
 from schrodinger_server.config import settings
 from schrodinger_server.detection.tasks import detect_object
 from schrodinger_server.health.endpoints import router as health_router
+from schrodinger_server.kit.cors import CORSConfig, Scope, CORSMatcherMiddleware
 from schrodinger_server.kit.db.postgres import (
     AsyncEngine,
     AsyncSessionMaker,
@@ -37,6 +38,37 @@ from schrodinger_server.redis import Redis, create_redis
 from schrodinger_server.stream.tasks import fetch_frames
 
 log: Logger = structlog.get_logger()
+
+
+def configure_cors(app: FastAPI) -> None:
+    configs: list[CORSConfig] = []
+
+    # Schrodinger frontend CORS configuration
+    if settings.CORS_ORIGINS:
+
+        def schrodinger_frontend_matcher(origin: str, scope: Scope) -> bool:
+            return origin in settings.CORS_ORIGINS
+
+        schrodinger_frontend_config = CORSConfig(
+            schrodinger_frontend_matcher,
+            allow_origins=[str(origin) for origin in settings.CORS_ORIGINS],
+            allow_credentials=True,  # Cookies are allowed, but only there!
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
+        configs.append(schrodinger_frontend_config)
+
+    # External API calls CORS configuration
+    api_config = CORSConfig(
+        lambda origin, scope: True,
+        allow_origins=["*"],
+        allow_credentials=False,  # No cookies allowed
+        allow_methods=["*"],
+        allow_headers=["Authorization"],  # Allow Authorization header to pass tokens
+    )
+    configs.append(api_config)
+
+    app.add_middleware(CORSMatcherMiddleware, configs=configs)
 
 
 class State(TypedDict):
@@ -109,6 +141,8 @@ def create_app() -> FastAPI:
 
     if not settings.is_testing():
         app.add_middleware(AsyncSessionMiddleware)
+
+    configure_cors(app)
 
     # /health
     app.include_router(health_router)

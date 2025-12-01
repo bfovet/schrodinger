@@ -23,6 +23,18 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "DEBUG"
     TESTING: bool = False
 
+    # JSON list of accepted CORS origins
+    CORS_ORIGINS: list[str] = []
+
+    ALLOWED_HOSTS: set[str] = {"127.0.0.1:3000", "localhost:3000"}
+
+    # Base URL for the backend.
+    BASE_URL: str = "http://127.0.0.1:8000"
+
+    # URL to frontend app.
+    FRONTEND_BASE_URL: str = "http://127.0.0.1:3000"
+    FRONTEND_DEFAULT_RETURN_PATH: str = "/"
+
     # Stream
     RTSP_USERNAME: str = ""
     RTSP_PASSWORD: str = ""
