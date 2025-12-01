@@ -19,7 +19,7 @@ export function Timeline({ onEventClick }: TimelineProps) {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="timeline-loading">Loading...</div>;
+  if (loading) return <div className="timeline-loading">Loading events...</div>;
   if (error) return <div className="timeline-error">{error}</div>;
 
   return (
@@ -30,15 +30,23 @@ export function Timeline({ onEventClick }: TimelineProps) {
           className="timeline-event"
           onClick={() => onEventClick(event)}
         >
-          <img
-            className="timeline-thumbnail"
-            src={getImageUrl(event.annotated_frame_s3_key)}
-            alt={`${event.name} ${event.event_type}`}
-          />
-          <div className="timeline-info">
-            <div className="timeline-name">{event.name} {event.event_type}</div>
-            <div className="timeline-time">
-              {new Date(event.timestamp).toLocaleString()}
+          <div className="timeline-card">
+            <div className="timeline-card-header">
+              <div className="timeline-avatar">🐱</div>
+              <div className="timeline-meta">
+                <div className="timeline-name">{event.name} {event.event_type}</div>
+                <div className="timeline-time">
+                  {new Date(event.timestamp).toLocaleString()}
+                </div>
+              </div>
+            </div>
+            <div className="timeline-thumbnail-wrapper">
+              <img
+                className="timeline-thumbnail"
+                src={getImageUrl(event.annotated_frame_s3_key)}
+                alt={`${event.name} ${event.event_type}`}
+              />
+              <div className="timeline-status">detected</div>
             </div>
           </div>
         </div>
