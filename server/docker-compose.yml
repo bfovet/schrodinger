@@ -198,6 +198,18 @@ services:
   #   command: celery --broker=redis://${SCHRODINGER_REDIS_HOST}:${SCHRODINGER_REDIS_HOST}/${SCHRODINGER_REDIS_DB} flower
   #   restart: unless-stopped
 
+  web:
+    build:
+      context: ../clients/web
+      dockerfile: Dockerfile
+    container_name: schrodinger-web
+    ports:
+      - "3000:80"
+    depends_on:
+      schrodinger:
+        condition: service_healthy
+    restart: unless-stopped
+
 volumes:
   postgres_data:
   minio_data:
