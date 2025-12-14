@@ -49,4 +49,4 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 EXPOSE 8000
 
 # Run the application
-CMD ["uvicorn", "schrodinger.app:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "schrodinger_server.app:app", "--host", "0.0.0.0", "--port", "8000"]

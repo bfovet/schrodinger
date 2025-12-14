@@ -24,8 +24,8 @@ dependencies = [
     "python-dotenv>=1.1.1",
     "sqlalchemy[asyncio]>=2.0.43",
     "structlog>=25.5.0",
-    "torch>=2.8.0",
-    "torchvision>=0.23.0",
+    "torch>=2.7.0,<2.8",
+    "torchvision>=0.22.0,<0.23",
     "types-boto3[s3]>=1.40.35",
     "ultralytics>=8.3.202",
     "uvloop>=0.21.0",
@@ -40,6 +40,15 @@ dev = [
     "isort>=6.0.1",
     "ruff>=0.13.1",
 ]
+
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }
+torchvision = { index = "pytorch-cpu" }
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
 
 [tool.fastapi]
 entrypoint = "schrodinger_server.app:app"

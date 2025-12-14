@@ -29,20 +29,19 @@ async def readiness_probe(
     session: AsyncSession = Depends(get_db_session),
     redis=Depends(get_redis),
 ) -> dict[str, bool]:
-    postgres_check_task = check_postgres(session)
-    redis_check_task = ping_redis(redis)
-    minio_check_task = check_minio_readiness()
-    celery_check_task = ping_celery()
-
-    results = await asyncio.gather(
-        postgres_check_task, redis_check_task, minio_check_task, celery_check_task
+    postgres_result, redis_result, minio_result = await asyncio.gather(
+        check_postgres(session),
+        ping_redis(redis),
+        check_minio_readiness(),
     )
 
+    celery_result = await asyncio.to_thread(ping_celery)
+
     checks = {
-        "postgres": results[0],
-        "redis": results[1],
-        "minio": results[2],
-        "celery": results[3],
+        "postgres": postgres_result,
+        "redis": redis_result,
+        "minio": minio_result,
+        "celery": celery_result,
     }
 
     if not all(checks.values()):

@@ -128,12 +128,12 @@ services:
     environment:
       - CELERY_BROKER_URL=redis://${SCHRODINGER_REDIS_HOST}:${SCHRODINGER_REDIS_PORT}/${SCHRODINGER_REDIS_DB}
       - CELERY_RESULT_BACKEND=redis://${SCHRODINGER_REDIS_HOST}:${SCHRODINGER_REDIS_PORT}/${SCHRODINGER_REDIS_DB}
-      # - MINIO_ENDPOINT=${SCHRODINGER_S3_ENDPOINT_URL}
-      # - MINIO_ACCESS_KEY=${SCHRODINGER_MINIO_USER}
-      # - MINIO_SECRET_KEY=${SCHRODINGER_MINIO_PWD}
+      - S3_ENDPOINT_URL=${SCHRODINGER_S3_ENDPOINT_URL}
+      - MINIO_USER=${SCHRODINGER_MINIO_USER}
+      - MINIO_PWD=${SCHRODINGER_MINIO_PWD}
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/ready"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -157,9 +157,9 @@ services:
     environment:
       - CELERY_BROKER_URL=redis://${SCHRODINGER_REDIS_HOST}:${SCHRODINGER_REDIS_PORT}/${SCHRODINGER_REDIS_DB}
       - CELERY_RESULT_BACKEND=redis://${SCHRODINGER_REDIS_HOST}:${SCHRODINGER_REDIS_PORT}/${SCHRODINGER_REDIS_DB}
-      # - MINIO_ENDPOINT=${SCHRODINGER_S3_ENDPOINT_URL}
-      # - MINIO_ACCESS_KEY=${SCHRODINGER_MINIO_USER}
-      # - MINIO_SECRET_KEY=${SCHRODINGER_MINIO_PWD}
+      - S3_ENDPOINT_URL=${SCHRODINGER_S3_ENDPOINT_URL}
+      - MINIO_USER=${SCHRODINGER_MINIO_USER}
+      - MINIO_PWD=${SCHRODINGER_MINIO_PWD}
     command: uv run celery -A schrodinger_server.celery.celery worker --loglevel=info
     restart: unless-stopped
     healthcheck:
@@ -197,6 +197,18 @@ services:
   #     - FLOWER_PORT=5555
   #   command: celery --broker=redis://${SCHRODINGER_REDIS_HOST}:${SCHRODINGER_REDIS_HOST}/${SCHRODINGER_REDIS_DB} flower
   #   restart: unless-stopped
+
+  web:
+    build:
+      context: ../clients/web
+      dockerfile: Dockerfile
+    container_name: schrodinger-web
+    ports:
+      - "3000:80"
+    depends_on:
+      schrodinger:
+        condition: service_healthy
+    restart: unless-stopped
 
 volumes:
   postgres_data:

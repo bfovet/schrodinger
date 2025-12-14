@@ -30,6 +30,6 @@ async def check_minio_readiness() -> bool:
         return response.status_code == 200
 
 
-async def ping_celery() -> bool:
+def ping_celery() -> bool:
     inspect = celery.control.inspect(timeout=1.0)
     return bool(inspect.ping())
