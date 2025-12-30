@@ -1978,7 +1978,7 @@ wheels = [
 ]
 
 [[package]]
-name = "schrodinger-server"
+name = "schrodinger"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [

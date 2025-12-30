@@ -5,8 +5,8 @@ from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-from schrodinger_server.config import settings
-from schrodinger_server.models import Model
+from schrodinger.config import settings
+from schrodinger.models import Model
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

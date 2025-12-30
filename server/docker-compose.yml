@@ -164,10 +164,10 @@ services:
       - S3_ENDPOINT_URL=${SCHRODINGER_S3_ENDPOINT_URL}
       - MINIO_USER=${SCHRODINGER_MINIO_USER}
       - MINIO_PWD=${SCHRODINGER_MINIO_PWD}
-    command: uv run celery -A schrodinger_server.celery.celery worker --loglevel=info
+    command: uv run celery -A schrodinger.celery.celery worker --loglevel=info
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "uv", "run", "celery", "-A", "schrodinger_server.celery.celery", "inspect", "ping"]
+      test: ["CMD", "uv", "run", "celery", "-A", "schrodinger.celery.celery", "inspect", "ping"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -186,7 +186,7 @@ services:
   #     - MINIO_ENDPOINT=minio:9000
   #     - MINIO_ACCESS_KEY=minio
   #     - MINIO_SECRET_KEY=minioadmin123
-  #   command: celery -A schrodinger_server.celery.celery beat --loglevel=info
+  #   command: celery -A schrodinger.celery.celery beat --loglevel=info
   #   restart: unless-stopped
 
   # flower:

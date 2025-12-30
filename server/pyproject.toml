@@ -1,5 +1,5 @@
 [project]
-name = "schrodinger_server"
+name = "schrodinger"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
@@ -51,4 +51,4 @@ url = "https://download.pytorch.org/whl/cpu"
 explicit = true
 
 [tool.fastapi]
-entrypoint = "schrodinger_server.app:app"
+entrypoint = "schrodinger.app:app"
