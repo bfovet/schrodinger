@@ -125,6 +125,8 @@ services:
     depends_on:
       celery-worker:
         condition: service_healthy
+    extra_hosts:
+      - "localhost:host-gateway"
     environment:
       - CELERY_BROKER_URL=redis://${SCHRODINGER_REDIS_HOST}:${SCHRODINGER_REDIS_PORT}/${SCHRODINGER_REDIS_DB}
       - CELERY_RESULT_BACKEND=redis://${SCHRODINGER_REDIS_HOST}:${SCHRODINGER_REDIS_PORT}/${SCHRODINGER_REDIS_DB}
@@ -154,6 +156,8 @@ services:
         condition: service_healthy
       minio-setup:
         condition: service_completed_successfully
+    extra_hosts:
+      - "localhost:host-gateway"
     environment:
       - CELERY_BROKER_URL=redis://${SCHRODINGER_REDIS_HOST}:${SCHRODINGER_REDIS_PORT}/${SCHRODINGER_REDIS_DB}
       - CELERY_RESULT_BACKEND=redis://${SCHRODINGER_REDIS_HOST}:${SCHRODINGER_REDIS_PORT}/${SCHRODINGER_REDIS_DB}
