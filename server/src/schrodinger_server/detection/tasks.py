@@ -135,7 +135,7 @@ def detect_object(self):
 
                         results = entity_detector.run_inference(frame)
                         entity = entity_detector.process_inference_results(
-                            results, CocoClassId.cup
+                            results, CocoClassId.cat
                         )
                         if entity is not None:
                             annotated_frame = annotate_frame(
@@ -192,7 +192,7 @@ def detect_object(self):
                                     session,
                                 )
                         if entity_found_before and not entity_found:
-                            entity_name = "cup"
+                            entity_name = "cat"
                             entity_str = self.redis.getdel(entity_name)
                             if entity_str:
                                 entity_dict = json.loads(entity_str)
