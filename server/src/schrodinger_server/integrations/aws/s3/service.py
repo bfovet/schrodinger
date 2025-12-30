@@ -82,4 +82,4 @@ class S3Service:
         )
 
         presign_expires_at = presign_from + timedelta(seconds=expires_in)
-        return (signed_download_url, presign_expires_at)
+        return signed_download_url, presign_expires_at
