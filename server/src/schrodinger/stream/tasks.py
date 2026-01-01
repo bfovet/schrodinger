@@ -12,12 +12,10 @@ from redis import Redis
 
 from schrodinger.celery import celery
 from schrodinger.logging import Logger
+from schrodinger.redis import STREAM_NAME
 from schrodinger.worker.redis import RedisTask
 
 log: Logger = structlog.wrap_logger(get_task_logger(__name__))
-
-
-STREAM_NAME = "frames"
 
 
 @dataclass

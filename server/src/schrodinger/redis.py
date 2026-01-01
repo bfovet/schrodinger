@@ -1,10 +1,10 @@
 from typing import TYPE_CHECKING, Literal, TypeAlias
 
 import redis.asyncio as _async_redis
+from fastapi import Request
 from redis import ConnectionError, RedisError, TimeoutError
 from redis.asyncio.retry import Retry
 from redis.backoff import default_backoff
-from fastapi import Request
 
 from schrodinger.config import settings
 
@@ -18,6 +18,8 @@ REDIS_RETRY_ON_ERROR: list[type[RedisError]] = [ConnectionError, TimeoutError]
 REDIS_RETRY = Retry(default_backoff(), retries=50)
 
 ProcessName: TypeAlias = Literal["app", "rate-limit", "worker", "script"]
+
+STREAM_NAME = "frames"
 
 
 def create_redis(process_name: ProcessName) -> Redis:
