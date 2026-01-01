@@ -103,7 +103,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[State]:
 
     redis = create_redis("app")
 
-    rtsp_url = f"rtsp://{settings.RTSP_USERNAME}:{settings.RTSP_PASSWORD}@{settings.RTSP_HOST_IP_ADDRESS}:554/{settings.RTSP_STREAM_NAME}"
+    rtsp_url = f"rtsp://{settings.RTSP_USERNAME}:{settings.RTSP_PASSWORD}@{settings.RTSP_HOST_IP_ADDRESS}:{settings.RTSP_PORT}/{settings.RTSP_STREAM_NAME}"
 
     log.debug("Stream used", rtsp_stream_name=settings.RTSP_STREAM_NAME)
 

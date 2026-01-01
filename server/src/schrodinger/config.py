@@ -39,6 +39,7 @@ class Settings(BaseSettings):
     RTSP_USERNAME: str = ""
     RTSP_PASSWORD: str = ""
     RTSP_HOST_IP_ADDRESS: str = ""
+    RTSP_PORT: str = ""
     RTSP_STREAM_NAME: str = ""
 
     # Database
