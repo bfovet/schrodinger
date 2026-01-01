@@ -41,7 +41,7 @@ class DetectedEntity(BaseModel):
 
 class EntityDetector:
     def __init__(self):
-        self.yolo_model = YOLO("data/yolo11n.pt")
+        self.yolo_model = YOLO("data/yolo11l.pt")
 
     def run_inference(self, frame):
         # Run YOLOv11 inference
